@@ -331,12 +331,13 @@ abstract class MangaController {
   }
 
   static async list(req: Request, res: Response) {
-    const { type, page, sort, order, keyword } = req.query as {
+    const { type, page, sort, order, keyword, tag } = req.query as {
       type?: MangaType;
       page?: number;
       sort?: MangaSort;
       order?: MangaOrder;
       keyword?: string;
+      tag?: string;
     };
 
     const mangaType = mangaTypeExist(type);
@@ -348,7 +349,8 @@ abstract class MangaController {
       page,
       sort,
       order,
-      keyword
+      keyword,
+      tag?.split(",")
     );
 
     res.json(data);
