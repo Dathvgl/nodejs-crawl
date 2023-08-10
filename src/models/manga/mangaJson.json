@@ -1,0 +1,107 @@
+{
+  "blogtruyen": {
+    "tag": {
+      "pathname": "/timkiem/nangcao",
+      "shift": false,
+      "main": "#menu .submenu.category.list-unstyled",
+      "description": "header > p.description"
+    },
+    "chapter": "#content > img",
+    "detail": {
+      "main": "#wrapper",
+      "href": ".entry-title > a",
+      "thumnail": ".thumbnail img",
+      "title": "#breadcrumbs > span:last-child",
+      "altTitle": ".description span.color-red:nth-child(1)",
+      "author": ".description > p > a.color-green",
+      "status": ".description span.color-red:nth-child(2)",
+      "tags": ".description span.category > a",
+      "description": ".content",
+      "chapter": {
+        "main": "#list-chapters",
+        "title": "p > span.title > a",
+        "time": "p > span.publishedDate"
+      }
+    },
+    "lastest": {
+      "item": {
+        "main": "#wrapper section.main-content > .row .list-mainpage.listview > .row:first-child > div > div",
+        "thumnail": "img",
+        "href": "h3:first-child > a",
+        "link": {
+          "main": "",
+          "chapter": "",
+          "time": ""
+        }
+      },
+      "page": {
+        "main": "#wrapper section.main-content > .row .list-mainpage.listview > .row:last-child",
+        "prev": "ul > li i.glyphicon.glyphicon-step-backward",
+        "next": "ul > li i.glyphicon.glyphicon-step-forward",
+        "total": "ul > li:last-child > a"
+      }
+    }
+  },
+  "nettruyen": {
+    "csv": {
+      "main": "src/excels/manga/nettruyen",
+      "headers": [
+        "id",
+        "href",
+        "title",
+        "thumnail",
+        "chapterId1",
+        "chapterIndex1",
+        "chapterTime1",
+        "chapterId2",
+        "chapterIndex2",
+        "chapterTime2",
+        "chapterId3",
+        "chapterIndex3",
+        "chapterTime3"
+      ]
+    },
+    "tag": {
+      "pathname": "/tim-truyen",
+      "shift": true,
+      "main": "#ctl00_divRight > div > div > ul > li",
+      "description": "#ctl00_mainContent_ctl00_divDescription > div",
+      "headers": ["id", "href", "name", "description"]
+    },
+    "chapter": "#ctl00_divCenter > .reading > .reading-detail > div > img",
+    "detail": {
+      "main": "#ctl00_divCenter",
+      "href": "ul.breadcrumb > li:last-child > a",
+      "thumnail": "article > .detail-info > .row > .col-image > img",
+      "title": "article > h1",
+      "altTitle": "article > .detail-info > .row > .col-info > ul > li.othername > h2",
+      "author": "article > .detail-info > .row > .col-info > ul > li.author > p:last-child",
+      "status": "article > .detail-info > .row > .col-info > ul > li.status > p:last-child",
+      "tags": "article > .detail-info > .row > .col-info > ul > li.kind > p:last-child > a",
+      "description": "article > .detail-content > p",
+      "chapter": {
+        "main": "article > #nt_listchapter > nav > ul > li",
+        "title": "a",
+        "time": ".no-wrap"
+      }
+    },
+    "lastest": {
+      "item": {
+        "main": "#ctl00_divCenter > div > div > div.items > div.row > div.item",
+        "thumnail": ".image > a > img",
+        "href": "figure > figcaption > h3 > a",
+        "link": {
+          "main": "figure > figcaption > ul > li",
+          "chapter": "a",
+          "time": "i"
+        }
+      },
+      "page": {
+        "main": "#ctl00_mainContent_ctl00_divPager",
+        "prev": "ul > li > a.prev-page",
+        "next": "ul > li > a.next-page",
+        "total": "ul > li:last-child > a"
+      }
+    }
+  }
+}
