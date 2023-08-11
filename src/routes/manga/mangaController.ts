@@ -350,7 +350,7 @@ abstract class MangaController {
       sort,
       order,
       keyword,
-      tag?.split(",")
+      tag ? tag.split(",") : undefined
     );
 
     res.json(data);

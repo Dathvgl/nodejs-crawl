@@ -48,24 +48,12 @@ export default abstract class MangaMongo {
     });
 
     const tagHandle = () => {
-      const pipeline: any[] = [{ $project: { _id: 1, name: 1 } }];
-
       if (tagId && tagId.length != 0) {
         const objIds = tagId.map((item) => new ObjectId(item));
-        pipeline.unshift({
-          $match: { _id: { $in: objIds } },
-        });
+        return { $match: { "tags._id": { $in: objIds } } };
       }
 
-      return {
-        $lookup: {
-          from: "mangaTag",
-          localField: "tags",
-          foreignField: "_id",
-          pipeline,
-          as: "tags",
-        },
-      };
+      return { $match: { "tags._id": { $not: { $in: [] } } } };
     };
 
     const sortHandle = () => {
@@ -93,7 +81,15 @@ export default abstract class MangaMongo {
             { $skip: (page - 1) * limit },
             { $limit: limit },
             { $project: { type: 0, href: 0, thumnail: 0, altTitle: 0 } },
-            tagHandle(),
+            {
+              $lookup: {
+                from: "mangaTag",
+                localField: "tags",
+                foreignField: "_id",
+                pipeline: [{ $project: { _id: 1, name: 1 } }],
+                as: "tags",
+              },
+            },
             {
               $lookup: {
                 from: "mangaAuthor",
@@ -116,6 +112,7 @@ export default abstract class MangaMongo {
                 as: "chapters",
               },
             },
+            tagHandle(),
             ...sortHandle(),
           ],
           totalPage: [{ $count: "total" }],
