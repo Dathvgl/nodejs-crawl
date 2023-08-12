@@ -4,7 +4,10 @@ export type MangaFactoryType = {
   type: MangaType;
   baseUrl: string;
   tag(array?: string[]): Promise<MangaTagPuppeteer[]>;
-  chapter(href: string): Promise<(Buffer | undefined)[]>;
+  chapter(
+    href: string,
+    callback: (buffer: Buffer | undefined, index: number) => Promise<void>
+  ): Promise<(Buffer | undefined)[]>;
   detail(href: string): Promise<MangaDetailPuppeteer>;
   lastest(page?: number): Promise<MangaListPuppeteer>;
 };

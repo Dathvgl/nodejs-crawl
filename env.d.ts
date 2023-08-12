@@ -7,6 +7,7 @@ declare global {
       MONGO_DB?: string;
       PUPPETEER_EXECUTABLE_PATH?: string;
       PUPPETEER_QUALITY?: string;
+      LIMIT_LIST?: string;
       BLOGTRUYEN?: string;
       NETTRUYEN?: string;
       PROJECT_ID?: string;

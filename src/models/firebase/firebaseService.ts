@@ -5,11 +5,11 @@ import { envs } from "index";
 import config from "./firebaseJson.json";
 
 const projectIds = envs.PROJECT_ID?.split(";|;") ?? [];
-const privateKeyIds = envs.PRIVATE_KEY_ID?.split(";|;") ?? [];
+// const privateKeyIds = envs.PRIVATE_KEY_ID?.split(";|;") ?? [];
 const privateKeys = envs.PRIVATE_KEY?.split(";|;") ?? [];
 const clientEmails = envs.CLIENT_EMAIL?.split(";|;") ?? [];
-const clientIds = envs.CLIENT_ID?.split(";|;") ?? [];
-const clientCerts = envs.CLIENT_X509_CERT_URL?.split(";|;") ?? [];
+// const clientIds = envs.CLIENT_ID?.split(";|;") ?? [];
+// const clientCerts = envs.CLIENT_X509_CERT_URL?.split(";|;") ?? [];
 const storageBuckets = envs.STORAGE_BUCKET?.split(";|;") ?? [];
 
 const apps = projectIds.map((_, index) => {

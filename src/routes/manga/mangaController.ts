@@ -17,50 +17,6 @@ const mangaTypeExist = (type?: string) => {
 
 abstract class MangaController {
   static async test(req: Request, res: Response) {
-    // const browser = puppeteer.launch({
-    //   headless: "new",
-    //   args,
-    //   defaultViewport: null,
-    //   executablePath: execPath,
-    // });
-
-    // const url = new URL("http://localhost:3000/manga/puppeteer");
-    // url.searchParams.append(
-    //   "url",
-    //   "https://i221.ntcdntempv3.com/data/images/88637/1025543/015-20829c9.jpg?data=net"
-    // );
-
-    // const page = await (await browser).newPage();
-    // await page.goto(url.href, { waitUntil: "networkidle0" });
-
-    // let buffer: Buffer | undefined = undefined;
-    // const item = await page.$("img#puppeteer");
-    // const boundingBox = await item?.boundingBox();
-
-    // if (boundingBox) {
-    //   buffer = await page.screenshot({
-    //     type: "webp",
-    //     quality: 85,
-    //     optimizeForSpeed: true,
-    //     clip: {
-    //       x: boundingBox.x,
-    //       y: boundingBox.y,
-    //       width: boundingBox.width,
-    //       height: boundingBox.height,
-    //     },
-    //   });
-    // }
-
-    // await item?.dispose();
-    // await (await browser).close();
-
-    // if (buffer) {
-    //   const file = buckets[1].file("test.jpg");
-    //   await file.save(buffer, { contentType: "image/jpeg" });
-    //   const link = await getDownloadURL(file);
-    //   console.log(link);
-    // }
-
     res.json({});
   }
 
@@ -331,11 +287,12 @@ abstract class MangaController {
   }
 
   static async list(req: Request, res: Response) {
-    const { type, page, sort, order, keyword, tag } = req.query as {
+    const { type, page, sort, order, limit, keyword, tag } = req.query as {
       type?: MangaType;
       page?: number;
       sort?: MangaSort;
       order?: MangaOrder;
+      limit?: string;
       keyword?: string;
       tag?: string;
     };
@@ -349,6 +306,7 @@ abstract class MangaController {
       page,
       sort,
       order,
+      limit,
       keyword,
       tag ? tag.split(",") : undefined
     );

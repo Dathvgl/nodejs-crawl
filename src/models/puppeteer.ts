@@ -64,7 +64,11 @@ export default class Puppeteer {
     });
   }
 
-  static async chapters(type: MangaType, url: string) {
+  static async chapters(
+    type: MangaType,
+    url: string,
+    callback: (buffer: Buffer | undefined, index: number) => Promise<void>
+  ) {
     const browser = puppeteer.launch({
       headless: "new",
       args,
@@ -85,9 +89,9 @@ export default class Puppeteer {
       const boundingBox = await item.boundingBox();
 
       if (!boundingBox) {
-        buffers.push(undefined);
+        await callback(undefined, index);
       } else {
-        buffers.push(
+        await callback(
           await page.screenshot({
             type: "webp",
             quality,
@@ -98,7 +102,8 @@ export default class Puppeteer {
               width: boundingBox.width,
               height: boundingBox.height,
             },
-          })
+          }),
+          index
         );
       }
 

@@ -83,9 +83,12 @@ export default class MangaFactory implements MangaFactoryType {
     return list;
   }
 
-  async chapter(href: string): Promise<(Buffer | undefined)[]> {
+  async chapter(
+    href: string,
+    callback: (buffer: Buffer | undefined, index: number) => Promise<void>
+  ): Promise<(Buffer | undefined)[]> {
     const link = this.baseUrl + href;
-    return await Puppeteer.chapters(this.type, link);
+    return await Puppeteer.chapters(this.type, link, callback);
   }
 
   async detail(href: string): Promise<MangaDetailPuppeteer> {

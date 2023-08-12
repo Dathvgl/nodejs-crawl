@@ -30,8 +30,9 @@ import {
 import { momentNowTS } from "utils/date";
 import MangaFirebase from "./mangaFirebase";
 import MangaService from "./mangaService";
+import { envs } from "index";
 
-const limit = 20;
+const limitBase = parseInt(envs.LIMIT_LIST ?? "20");
 
 export default abstract class MangaMongo {
   static async mangaList(
@@ -39,9 +40,12 @@ export default abstract class MangaMongo {
     page: number = 1,
     sort: MangaSort,
     order: MangaOrder,
+    limit?: string,
     keyword?: string,
     tagId?: string[]
   ) {
+    const limitList = parseInt(limit ?? limitBase.toString());
+
     await mangaDetailCollection.createIndex({
       title: "text",
       altTitle: "text",
@@ -78,8 +82,8 @@ export default abstract class MangaMongo {
         $facet: {
           data: [
             { $match: { type } },
-            { $skip: (page - 1) * limit },
-            { $limit: limit },
+            { $skip: (page - 1) * limitList },
+            { $limit: limitList },
             { $project: { type: 0, href: 0, thumnail: 0, altTitle: 0 } },
             {
               $lookup: {
@@ -135,7 +139,7 @@ export default abstract class MangaMongo {
       },
       {
         $addFields: {
-          totalPage: { $ceil: { $divide: ["$totalPage", limit] } },
+          totalPage: { $ceil: { $divide: ["$totalPage", limitList] } },
         },
       },
       {
@@ -663,13 +667,12 @@ export default abstract class MangaMongo {
           updatedAt: momentNowTS(),
         });
 
-      // loop insert image
-      const buffers = await manga.chapter(item.href);
-      const bufferLength = buffers.length;
-      for (let index = 0; index < bufferLength; index++) {
-        const item = buffers[index];
+      const handleChapter = async (
+        buffer: Buffer | undefined,
+        index: number
+      ) => {
         const src = await MangaFirebase.addImage(
-          item,
+          buffer,
           id.toString(),
           chapterId.toString(),
           index,
@@ -684,7 +687,10 @@ export default abstract class MangaMongo {
           createdAt: momentNowTS(),
           updatedAt: momentNowTS(),
         });
-      }
+      };
+
+      // loop insert image
+      await manga.chapter(item.href, handleChapter);
     }
   }
 

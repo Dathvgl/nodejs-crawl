@@ -1,3 +1,4 @@
+import { FirebaseError } from "firebase-admin";
 import { getDownloadURL } from "firebase-admin/storage";
 import { buckets } from "models/firebase/firebaseService";
 import { MangaType } from "types/manga";
@@ -16,8 +17,9 @@ export default class MangaFirebase {
         const file = bucket.file(`${type}/${id}/thumbnail.jpg`);
         await file.save(buffer, { contentType: "image/jpeg" });
         return await getDownloadURL(file);
-      } catch (error) {
-        console.error(error);
+      } catch (e) {
+        const error = e as FirebaseError
+        console.error(error.message);
       }
     }
 
@@ -30,8 +32,10 @@ export default class MangaFirebase {
       const bucket = buckets[index];
       try {
         await bucket.file(`${type}/${id}/thumbnail.jpg`).delete();
-      } catch (error) {
-        console.error(error);
+        return;
+      } catch (e) {
+        const error = e as FirebaseError
+        console.error(error.message);
       }
     }
   }
@@ -54,8 +58,9 @@ export default class MangaFirebase {
 
         await file.save(buffer, { contentType: "image/jpeg" });
         return await getDownloadURL(file);
-      } catch (error) {
-        console.error(error);
+      } catch (e) {
+        const error = e as FirebaseError
+        console.error(error.message);
       }
     }
 
@@ -75,8 +80,10 @@ export default class MangaFirebase {
         await bucket
           .file(`${type}/${detailId}/${chapterId}/${chapterIndex}.jpg`)
           .delete();
-      } catch (error) {
-        console.error(error);
+        return;
+      } catch (e) {
+        const error = e as FirebaseError
+        console.error(error.message);
       }
     }
   }

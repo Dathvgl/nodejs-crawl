@@ -18,9 +18,9 @@
       "tags": ".description span.category > a",
       "description": ".content",
       "chapter": {
-        "main": "#list-chapters",
-        "title": "p > span.title > a",
-        "time": "p > span.publishedDate"
+        "main": "#list-chapters > p",
+        "title": "span.title > a",
+        "time": "span.publishedDate"
       }
     },
     "lastest": {
