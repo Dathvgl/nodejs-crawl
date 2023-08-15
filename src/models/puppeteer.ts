@@ -80,7 +80,6 @@ export default class Puppeteer {
     await page.goto(url, { waitUntil: "networkidle0" });
 
     const chapterJson = manga[type]["chapter"];
-    const buffers: (Buffer | undefined)[] = [];
     const array = await page.$$(chapterJson);
     const length = array.length;
 
@@ -111,7 +110,6 @@ export default class Puppeteer {
     }
 
     await (await browser).close();
-    return buffers;
   }
 
   static async thumnail(type: MangaType, url: string) {

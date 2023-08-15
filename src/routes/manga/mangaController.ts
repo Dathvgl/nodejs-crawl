@@ -1,6 +1,9 @@
+import axios from "axios";
 import { Request, Response } from "express";
+import { getDownloadURL } from "firebase-admin/storage";
 import CSV from "models/csv";
 import { CustomError } from "models/errror";
+import { buckets } from "models/firebase/firebaseService";
 import MangaMongo from "models/manga/mangaMongo";
 import MangaOctoparse from "models/manga/mangaOctoparse";
 import MangaService from "models/manga/mangaService";
@@ -17,7 +20,86 @@ const mangaTypeExist = (type?: string) => {
 
 abstract class MangaController {
   static async test(req: Request, res: Response) {
-    res.json({});
+    // const response = await axios.get(
+    //   "https://blogtruyen.vn/32253/sau-khi-bi-dung-si-cuop-di-moi-thu-toi-da-lap-to-doi-cung-voi-me-cua-dung-si"
+    // );
+
+    // try {
+    //   const { data } = await axios.get(
+    //     "https://i8.bumcheo.info/792/792771/034.jpg?v=1683695369",
+    //     { responseType: "arraybuffer" }
+    //   );
+
+    //   const file = buckets[0].file("test.jpg");
+    //   await file.save(data, { contentType: "image/jpeg" });
+    //   const url = await getDownloadURL(file);
+    //   res.send(url);
+    // } catch (error) {
+    //   console.error(error);
+    //   res.send("error");
+    // }
+
+    // res.send(response.data as string);
+    // const mangaType = "blogtruyen";
+    // const chapterLimit = 2;
+
+    // const manga = MangaService.init(mangaType);
+    // const data = await manga.detail(
+    //   "/33107/cong-chua-yeu-tinh-cuc-muon-bi-thu-nhan-tan-cong"
+    // );
+
+    // const detail = await MangaMongo.getDetailExist(data.href, mangaType);
+    // if (!detail) {
+    //   res.send("haha")
+    //   // await MangaMongo.postDetailCrawl(data, mangaType, chapterLimit);
+    // } else {
+    //   const detailId = new ObjectId(detail._id);
+    //   const chapters = await MangaMongo.getDetailChapterList(
+    //     detailId,
+    //     mangaType
+    //   );
+
+    //   // find new chapter
+    //   const filterNew = data.chapters.filter(({ title }) => {
+    //     const regex = title.match(/\d+(?:\.?\d+)?/g);
+    //     const chapter = regex ? parseFloat(regex[0]) : -1;
+    //     const result = chapters.find((item) => item.chapter == chapter);
+    //     console.log("new", chapter);
+    //     if (result) return false;
+    //     else return true;
+    //   });
+
+    //   // if (filterNew.length != 0) {
+    //   //   await MangaMongo.postDetailChapterCrawl(
+    //   //     detailId,
+    //   //     mangaType,
+    //   //     filterNew,
+    //   //     chapterLimit
+    //   //   );
+    //   // }
+
+    //   // find wrong chapter
+    //   const filterOld = chapters.filter((item) => {
+    //     const result = data.chapters.find(({ title }) => {
+    //       const regex = title.match(/\d+(?:\.?\d+)?/g);
+    //       const chapter = regex ? parseFloat(regex[0]) : -1;
+    //       return item.chapter == chapter;
+    //     });
+
+    //     console.log("old", result);
+    //     if (result) return false;
+    //     else return true;
+    //   });
+
+    //   // if (filterOld.length != 0) {
+    //   //   await MangaMongo.deleteDetailChapters(
+    //   //     detailId,
+    //   //     filterOld.map((item) => item._id),
+    //   //     mangaType
+    //   //   );
+    //   // }
+    //   res.json({ chapters, filterNew, filterOld });
+    // }
   }
 
   static async tagCrawl(req: Request, res: Response) {
@@ -96,10 +178,15 @@ abstract class MangaController {
   }
 
   static async detailCrawl(req: Request, res: Response) {
-    const { href, type } = req.query as {
+    const { href, type, limit } = req.query as {
       href?: string;
       type?: string;
+      limit?: string;
     };
+
+    const chapterLimit = isNaN(parseInt(limit ?? "0"))
+      ? 0
+      : parseInt(limit ?? "0");
 
     const mangaType = mangaTypeExist(type);
     if (!href) throw new CustomError("Invalid href", 500);
@@ -109,7 +196,7 @@ abstract class MangaController {
 
     const detail = await MangaMongo.getDetailExist(data.href, mangaType);
     if (!detail) {
-      await MangaMongo.postDetailCrawl(data, mangaType);
+      await MangaMongo.postDetailCrawl(data, mangaType, chapterLimit);
     } else {
       const detailId = new ObjectId(detail._id);
       const chapters = await MangaMongo.getDetailChapterList(
@@ -123,7 +210,12 @@ abstract class MangaController {
         });
 
         await MangaMongo.deleteThumnail(detailId, mangaType);
-        await MangaMongo.postThumnailCrawl(detailId, mangaType, data.href);
+        await MangaMongo.postThumnailCrawl(
+          detailId,
+          mangaType,
+          data.href,
+          data.thumnail
+        );
       }
 
       // find new chapter
@@ -136,7 +228,12 @@ abstract class MangaController {
       });
 
       if (filterNew.length != 0) {
-        await MangaMongo.postDetailChapterCrawl(detailId, mangaType, filterNew);
+        await MangaMongo.postDetailChapterCrawl(
+          detailId,
+          mangaType,
+          filterNew,
+          chapterLimit
+        );
       }
 
       // find wrong chapter
@@ -201,11 +298,15 @@ abstract class MangaController {
   }
 
   static async lastestCrawl(req: Request, res: Response) {
-    const { type, page, sort } = req.query as {
+    const { type, page, limit } = req.query as {
       type?: MangaType;
       page?: number;
-      sort?: MangaSort;
+      limit?: string;
     };
+
+    const chapterLimit = isNaN(parseInt(limit ?? "0"))
+      ? 0
+      : parseInt(limit ?? "0");
 
     const mangaType = mangaTypeExist(type);
 
@@ -223,7 +324,7 @@ abstract class MangaController {
       );
 
       if (!detail) {
-        await MangaMongo.postDetailCrawl(detailData, mangaType);
+        await MangaMongo.postDetailCrawl(detailData, mangaType, chapterLimit);
       } else {
         const detailId = new ObjectId(detail._id);
         const chapters = await MangaMongo.getDetailChapterList(
@@ -240,7 +341,8 @@ abstract class MangaController {
           await MangaMongo.postThumnailCrawl(
             detailId,
             mangaType,
-            detailData.href
+            detailData.href,
+            detailData.thumnail
           );
         }
 
@@ -257,7 +359,8 @@ abstract class MangaController {
           await MangaMongo.postDetailChapterCrawl(
             detailId,
             mangaType,
-            filterNew
+            filterNew,
+            chapterLimit
           );
         }
 

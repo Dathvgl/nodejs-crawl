@@ -1,20 +1,75 @@
 import * as cheerio from "cheerio";
-import Puppeteer from "models/puppeteer";
-import { MangaDetailPuppeteer, MangaListPuppeteer } from "types/manga";
+import { MangaDetailFetch, MangaListFetch, MangaTagFetch } from "types/manga";
 import { strEmpty, strExist } from "utils/check";
-import MangaFactory from "./mangaFactory";
-import manga from "./mangaJson.json";
-import MangaService from "./mangaService";
+import MangaFactory from "../mangaFactory";
+import manga from "../mangaJson.json";
+import MangaService from "../mangaService";
 
 export default class Blogtruyen extends MangaFactory {
-  async detail(href: string): Promise<MangaDetailPuppeteer> {
+  async tagDescription(href: string) {
+    const description = manga[this.type]["tag"]["description"];
+    if (!description) return "";
+    return cheerio
+      .load(await this.fetchWebsite(this.baseUrl + href))(description)
+      .text()
+      .replaceAll("\n", "")
+      .trim();
+  }
+
+  async tag(array?: string[] | undefined): Promise<MangaTagFetch[]> {
+    const tagJson = manga[this.type]["tag"];
+
+    const link = `${this.baseUrl}${tagJson["pathname"]}`;
+    const $ = cheerio.load(await this.fetchWebsite(link));
+
+    const tagMain = $(tagJson["main"]);
+    const tagHandle = (node: cheerio.Cheerio<cheerio.AnyNode>) => {
+      switch (this.type) {
+        case "blogtruyen":
+          return strExist(node.attr("href"));
+        case "nettruyen":
+        default:
+          return new URL(strExist(node.attr("href"))).pathname;
+      }
+    };
+
+    const tags = tagMain
+      .find("a")
+      .map((_, item) => ({
+        href: tagHandle($(item)),
+        name: $(item).text(),
+      }))
+      .get()
+      .filter(({ name }) => {
+        if (!array) return true;
+
+        const result = array.find((item) => item == name);
+        if (result) return false;
+        else return true;
+      });
+
+    if (tagJson["shift"]) tags.shift();
+
+    const list: MangaTagFetch[] = [];
+    const length = tags.length;
+    for (let index = 0; index < length; index++) {
+      const item = tags[index];
+      list.push({
+        ...item,
+        type: this.type,
+        description: await this.tagDescription(item.href),
+      });
+    }
+
+    return list;
+  }
+
+  async detail(href: string): Promise<MangaDetailFetch> {
     const link = this.baseUrl + href;
-    const puppeteer = new Puppeteer();
-    const html = await puppeteer.goto(link);
+    const $ = cheerio.load(await this.fetchWebsite(link));
 
     const detailJson = manga[this.type]["detail"];
     const chapterJson = detailJson["chapter"];
-    const $ = cheerio.load(html);
 
     const detailMain = $(detailJson["main"]);
     const chapterMain = $(chapterJson["main"]);
@@ -72,19 +127,16 @@ export default class Blogtruyen extends MangaFactory {
     };
   }
 
-  async lastest(page: number = 1): Promise<MangaListPuppeteer> {
+  async lastest(page: number = 1): Promise<MangaListFetch> {
     const link = `${this.baseUrl}${
       page !== undefined && page > 1 ? `/page/${page}` : ``
     }`;
-
-    const puppeteer = new Puppeteer();
-    const html = await puppeteer.goto(link);
 
     const lastestJson = manga[this.type]["lastest"];
     const itemJson = lastestJson["item"];
     const pageJson = lastestJson["page"];
 
-    const $ = cheerio.load(html);
+    const $ = cheerio.load(await this.fetchWebsite(link));
 
     const itemMain = $(itemJson["main"]);
     const pageMain = $(pageJson["main"]);

@@ -1,19 +1,29 @@
 import { envs } from "index";
 import moment from "moment";
 import { MangaType } from "types/manga";
-import { numFromStr } from "utils/check";
+import { numFromStr, strExist } from "utils/check";
 import { momentNowTS } from "utils/date";
-import Nettruyen from "./nettruyen";
-import Blogtruyen from "./blogtruyen";
+import Nettruyen from "./type/nettruyen";
+import Blogtruyen from "./type/blogtruyen";
 
 export default class MangaService {
   static init(type: MangaType) {
     switch (type) {
       case "blogtruyen":
-        return new Blogtruyen(type, envs.BLOGTRUYEN);
+        return new Blogtruyen(
+          type,
+          strExist(envs.BLOGTRUYEN),
+          "axios",
+          "axios"
+        );
       case "nettruyen":
       default:
-        return new Nettruyen(type, envs.NETTRUYEN);
+        return new Nettruyen(
+          type,
+          strExist(envs.NETTRUYEN),
+          "puppeteer",
+          "puppeteer"
+        );
     }
   }
 

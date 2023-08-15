@@ -1,3 +1,4 @@
+import { envs } from "index";
 import {
   mangaAuthorCollection,
   mangaDetailChapterCollection,
@@ -6,31 +7,29 @@ import {
   mangaTagCollection,
   mangaThumnailCollection,
 } from "models/mongo";
-import Puppeteer from "models/puppeteer";
 import { ObjectId } from "mongodb";
 import {
   MangaAuthorClient,
+  MangaAuthorFetch,
   MangaAuthorMongo,
-  MangaAuthorPuppeteer,
   MangaChapterClient,
   MangaDetailChapterClient,
-  MangaDetailChapterPuppeteer,
+  MangaDetailChapterFetch,
   MangaDetailClient,
-  MangaDetailPuppeteer,
+  MangaDetailFetch,
   MangaLink,
   MangaListClient,
   MangaOrder,
   MangaSort,
   MangaTagClient,
+  MangaTagFetch,
   MangaTagMongo,
-  MangaTagPuppeteer,
   MangaThumnailClient,
   MangaType,
 } from "types/manga";
 import { momentNowTS } from "utils/date";
 import MangaFirebase from "./mangaFirebase";
 import MangaService from "./mangaService";
-import { envs } from "index";
 
 const limitBase = parseInt(envs.LIMIT_LIST ?? "20");
 
@@ -180,7 +179,7 @@ export default abstract class MangaMongo {
       .toArray();
   }
 
-  static async postTagsCrawl(data: MangaTagPuppeteer[], type: MangaType) {
+  static async postTagsCrawl(data: MangaTagFetch[], type: MangaType) {
     const array: Omit<MangaTagMongo, "_id">[] = data.map((item) => ({
       ...item,
       type,
@@ -223,7 +222,7 @@ export default abstract class MangaMongo {
       // add any new tag
       if (filter.length != 0) {
         const manga = MangaService.init(type);
-        const list: MangaTagPuppeteer[] = [];
+        const list: MangaTagFetch[] = [];
         const length = filter.length;
 
         for (let index = 0; index < length; index++) {
@@ -263,7 +262,7 @@ export default abstract class MangaMongo {
       .toArray();
   }
 
-  static async postAuthorsCrawl(data: MangaAuthorPuppeteer[], type: MangaType) {
+  static async postAuthorsCrawl(data: MangaAuthorFetch[], type: MangaType) {
     const array: Omit<MangaAuthorMongo, "_id">[] = data.map((item) => ({
       ...item,
       type,
@@ -414,7 +413,11 @@ export default abstract class MangaMongo {
     }>({ type, href }, { projection: { _id: 1, thumnail: 1, status: 1 } });
   }
 
-  static async postDetailCrawl(data: MangaDetailPuppeteer, type: MangaType) {
+  static async postDetailCrawl(
+    data: MangaDetailFetch,
+    type: MangaType,
+    chapterLimit: number
+  ) {
     const { authors, tags, chapters, ...detail } = data;
 
     const tagDetail: ObjectId[] = await MangaMongo.putTagsCrawl(tags, type);
@@ -431,10 +434,20 @@ export default abstract class MangaMongo {
     });
 
     // add thumnail
-    await MangaMongo.postThumnailCrawl(detailId, type, detail.href);
+    await MangaMongo.postThumnailCrawl(
+      detailId,
+      type,
+      detail.href,
+      detail.thumnail
+    );
 
     // add chapter
-    await MangaMongo.postDetailChapterCrawl(detailId, type, chapters);
+    await MangaMongo.postDetailChapterCrawl(
+      detailId,
+      type,
+      chapters,
+      chapterLimit
+    );
   }
 
   static async putDetailCrawl(
@@ -458,11 +471,16 @@ export default abstract class MangaMongo {
     );
   }
 
-  static async postThumnailCrawl(id: ObjectId, type: MangaType, href: string) {
+  static async postThumnailCrawl(
+    id: ObjectId,
+    type: MangaType,
+    href: string,
+    thumnail: string
+  ) {
     const manga = MangaService.init(type);
     console.log("url", type, manga.baseUrl + href);
 
-    const buffer = await Puppeteer.thumnail(type, manga.baseUrl + href);
+    const buffer = await manga.fetchThumnail(manga.baseUrl + href, thumnail);
     const src = await MangaFirebase.addThumnail(buffer, id.toString(), type);
 
     await mangaThumnailCollection.insertOne({
@@ -628,7 +646,7 @@ export default abstract class MangaMongo {
       .find<{
         _id: string;
         chapter: number;
-      }>({ detailId: id, type }, { projection: { _id: 1, thumnail: 1 } })
+      }>({ detailId: id, type }, { projection: { _id: 1, chapter: 1 } })
       .sort({ chapter: -1 })
       .toArray();
   }
@@ -636,7 +654,8 @@ export default abstract class MangaMongo {
   static async postDetailChapterCrawl(
     id: ObjectId,
     type: MangaType,
-    data: MangaDetailChapterPuppeteer[]
+    data: MangaDetailChapterFetch[],
+    chapterLimit: number
   ) {
     const manga = MangaService.init(type);
 
@@ -648,10 +667,24 @@ export default abstract class MangaMongo {
       });
     }
 
+    const order = [...data].sort((a, b) => {
+      const ax = a.title.match(/\d+(?:\.?\d+)?/g);
+      const x = ax ? parseFloat(ax[0]) : -1;
+
+      const by = b.title.match(/\d+(?:\.?\d+)?/g);
+      const y = by ? parseFloat(by[0]) : -1;
+
+      return x - y;
+    });
+
     // loop chapter
-    const chapterLength = data.length;
+    const chapterLength = order.length;
     for (let index = 0; index < chapterLength; index++) {
-      const item = data[index];
+      if (chapterLimit > 0) {
+        if (index == chapterLimit) break;
+      }
+
+      const item = order[index];
 
       const { title, ...rest } = item;
       const chapter = title.match(/\d+(?:\.?\d+)?/g);

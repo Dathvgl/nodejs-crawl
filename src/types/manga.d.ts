@@ -1,17 +1,5 @@
 import { BaseMongo } from "./mongo";
 
-export type MangaFactoryType = {
-  type: MangaType;
-  baseUrl: string;
-  tag(array?: string[]): Promise<MangaTagPuppeteer[]>;
-  chapter(
-    href: string,
-    callback: (buffer: Buffer | undefined, index: number) => Promise<void>
-  ): Promise<(Buffer | undefined)[]>;
-  detail(href: string): Promise<MangaDetailPuppeteer>;
-  lastest(page?: number): Promise<MangaListPuppeteer>;
-};
-
 export type MangaType = "nettruyen" | "blogtruyen";
 export type MangaSort = "lastest" | "chapter" | "name";
 export type MangaOrder = "asc" | "desc";
@@ -28,7 +16,7 @@ export type MangaListResult<T> = {
   data: T[];
 };
 
-export type MangaListPuppeteer = MangaListResult<{
+export type MangaListFetch = MangaListResult<{
   href: string;
   title: string;
   thumnail: string;
@@ -39,7 +27,7 @@ export type MangaListPuppeteer = MangaListResult<{
   }[];
 }>;
 
-export type MangaDetailPuppeteer = {
+export type MangaDetailFetch = {
   type: MangaType;
   href: string;
   thumnail: string;
@@ -51,42 +39,42 @@ export type MangaDetailPuppeteer = {
   watched: number;
   followed: number;
   description: string;
-  chapters: MangaDetailChapterPuppeteer[];
+  chapters: MangaDetailChapterFetch[];
 };
 
-export type MangaDetailChapterPuppeteer = {
+export type MangaDetailChapterFetch = {
   href: string;
   title: string;
   time: number;
   watched: number;
 };
 
-export type MangaTagPuppeteer = {
+export type MangaTagFetch = {
   name: string;
   href: string;
   type: MangaType;
   description: string;
 };
 
-export type MangaAuthorPuppeteer = {
+export type MangaAuthorFetch = {
   name: string;
   href: string;
   type: MangaType;
 };
 
-export type MangaTagMongo = BaseMongo & MangaTagPuppeteer;
-export type MangaAuthorMongo = BaseMongo & MangaAuthorPuppeteer;
+export type MangaTagMongo = BaseMongo & MangaTagFetch;
+export type MangaAuthorMongo = BaseMongo & MangaAuthorFetch;
 export type MangaThumnailMongo = BaseMongo & {
   detailId: string;
   type: MangaType;
   src: string;
 };
 export type MangaDetailMongo = BaseMongo &
-  Omit<MangaDetailPuppeteer, "tags" | "authors" | "chapters"> & {
+  Omit<MangaDetailFetch, "tags" | "authors" | "chapters"> & {
     lastestUpdated: number;
   };
 export type MangaDetailChapterMongo = BaseMongo &
-  Omit<MangaDetailChapterPuppeteer, "href" | "title"> & {
+  Omit<MangaDetailChapterFetch, "href" | "title"> & {
     detailId: string;
     type: MangaType;
     chapter: number;

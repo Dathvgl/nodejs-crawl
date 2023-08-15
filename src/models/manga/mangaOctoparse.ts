@@ -7,7 +7,7 @@ import {
 } from "models/mongo";
 import Puppeteer from "models/puppeteer";
 import { ObjectId } from "mongodb";
-import { MangaDetailPuppeteer, MangaType } from "types/manga";
+import { MangaDetailFetch, MangaType } from "types/manga";
 import { ChapterOctoparseServer, DetailOctoparseServer } from "types/octoparse";
 import { strBase64 } from "utils/check";
 import { momentNowTS } from "utils/date";
@@ -35,8 +35,8 @@ export default class MangaOctoparse {
     if (!data) return [];
 
     const length = data.length;
-    const list: MangaDetailPuppeteer[] = [];
-    let obj: MangaDetailPuppeteer | null = null;
+    const list: MangaDetailFetch[] = [];
+    let obj: MangaDetailFetch | null = null;
 
     const authorExist = (href: string, name: string) => {
       if (href) return [{ href: new URL(href).pathname, name }];
