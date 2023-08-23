@@ -28,11 +28,12 @@ type ChapterOctoparseTransfer = {
 const localClient = "http://localhost:3000";
 
 export default class MangaOctoparse {
-  static async detail(
+  async detail(
     data: DetailOctoparseServer[] | undefined,
     type: MangaType
   ) {
     if (!data) return [];
+    const mangaMongo = new MangaMongo();
 
     const length = data.length;
     const list: MangaDetailFetch[] = [];
@@ -166,16 +167,16 @@ export default class MangaOctoparse {
             });
 
             const manga = MangaService.init(type);
-            const detail = await MangaMongo.getDetailExist(obj.href, type);
+            const detail = await mangaMongo.getDetailExist(obj.href, type);
             if (!detail) {
               const { authors, tags, chapters, ...rest } = obj;
 
-              const tagDetail: ObjectId[] = await MangaMongo.putTagsCrawl(
+              const tagDetail: ObjectId[] = await mangaMongo.putTagsCrawl(
                 tags,
                 type
               );
 
-              const authorDetail: ObjectId[] = await MangaMongo.putAuthorCrawl(
+              const authorDetail: ObjectId[] = await mangaMongo.putAuthorCrawl(
                 authors,
                 type
               );
@@ -201,7 +202,7 @@ export default class MangaOctoparse {
               }
             } else {
               const detailId = new ObjectId(detail._id);
-              const chapters = await MangaMongo.getDetailChapterList(
+              const chapters = await mangaMongo.getDetailChapterList(
                 detailId,
                 type
               );
@@ -211,7 +212,7 @@ export default class MangaOctoparse {
               }
 
               if (obj.status != detail.status) {
-                await MangaMongo.putDetailCrawl(detailId, type, {
+                await mangaMongo.putDetailCrawl(detailId, type, {
                   status: obj.status,
                 });
               }
@@ -252,7 +253,7 @@ export default class MangaOctoparse {
               });
 
               if (filterOld.length != 0) {
-                await MangaMongo.deleteDetailChapters(
+                await mangaMongo.deleteDetailChapters(
                   detailId,
                   filterOld.map((item) => item._id),
                   type
@@ -280,16 +281,16 @@ export default class MangaOctoparse {
           });
 
           const manga = MangaService.init(type);
-          const detail = await MangaMongo.getDetailExist(obj.href, type);
+          const detail = await mangaMongo.getDetailExist(obj.href, type);
           if (!detail) {
             const { authors, tags, chapters, ...rest } = obj;
 
-            const tagDetail: ObjectId[] = await MangaMongo.putTagsCrawl(
+            const tagDetail: ObjectId[] = await mangaMongo.putTagsCrawl(
               tags,
               type
             );
 
-            const authorDetail: ObjectId[] = await MangaMongo.putAuthorCrawl(
+            const authorDetail: ObjectId[] = await mangaMongo.putAuthorCrawl(
               authors,
               type
             );
@@ -315,7 +316,7 @@ export default class MangaOctoparse {
             }
           } else {
             const detailId = new ObjectId(detail._id);
-            const chapters = await MangaMongo.getDetailChapterList(
+            const chapters = await mangaMongo.getDetailChapterList(
               detailId,
               type
             );
@@ -325,7 +326,7 @@ export default class MangaOctoparse {
             }
 
             if (obj.status != detail.status) {
-              await MangaMongo.putDetailCrawl(detailId, type, {
+              await mangaMongo.putDetailCrawl(detailId, type, {
                 status: obj.status,
               });
             }
@@ -366,7 +367,7 @@ export default class MangaOctoparse {
             });
 
             if (filterOld.length != 0) {
-              await MangaMongo.deleteDetailChapters(
+              await mangaMongo.deleteDetailChapters(
                 detailId,
                 filterOld.map((item) => item._id),
                 type
@@ -383,7 +384,7 @@ export default class MangaOctoparse {
     return list;
   }
 
-  static async chapter() {
+  async chapter() {
     const csv = new CSV({
       dir: "src/local",
       file: "LocalChapter.csv",

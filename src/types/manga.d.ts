@@ -1,3 +1,4 @@
+import { ListResult } from "./base";
 import { BaseMongo } from "./mongo";
 
 export type MangaType = "nettruyen" | "blogtruyen";
@@ -7,16 +8,7 @@ export type MangaLink = { href: string; name: string };
 export type MangaIndex = { _id: string; chapter: number };
 export type MangaLinkClient = { _id: string; name: string };
 
-export type MangaListResult<T> = {
-  totalData: number;
-  totalPage: number | null;
-  currentPage: number;
-  canPrev: boolean;
-  canNext: boolean;
-  data: T[];
-};
-
-export type MangaListFetch = MangaListResult<{
+export type MangaListFetch = ListResult<{
   href: string;
   title: string;
   thumnail: string;
@@ -113,7 +105,7 @@ export type MangaDetailChapterImageClient = Omit<
   MangaDetailChapterImageMongo,
   "type" | "createdAt" | "updatedAt"
 >;
-export type MangaListClient = MangaListResult<
+export type MangaListClient = ListResult<
   Omit<MangaDetailClient, "altTitle"> & {
     chapters: { _id: string; chapter: number; time: number }[];
   }

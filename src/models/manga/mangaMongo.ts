@@ -31,10 +31,8 @@ import { momentNowTS } from "utils/date";
 import MangaFirebase from "./mangaFirebase";
 import MangaService from "./mangaService";
 
-const limitBase = parseInt(envs.LIMIT_LIST ?? "20");
-
-export default abstract class MangaMongo {
-  static async mangaList(
+export default class MangaMongo {
+  async mangaList(
     type: MangaType,
     page: number = 1,
     sort: MangaSort,
@@ -43,6 +41,7 @@ export default abstract class MangaMongo {
     keyword?: string,
     tagId?: string[]
   ) {
+    const limitBase = parseInt(envs.LIMIT_LIST ?? "20");
     const limitList = parseInt(limit ?? limitBase.toString());
 
     await mangaDetailCollection.createIndex({
@@ -160,7 +159,7 @@ export default abstract class MangaMongo {
       .next();
   }
 
-  static async getTags(type: MangaType) {
+  async getTags(type: MangaType) {
     return await mangaTagCollection
       .find<MangaTagClient>(
         { type },
@@ -170,7 +169,7 @@ export default abstract class MangaMongo {
       .toArray();
   }
 
-  static async getTagList(type: MangaType, tags: string[]) {
+  async getTagList(type: MangaType, tags: string[]) {
     return await mangaTagCollection
       .find<MangaTagClient>(
         { type, name: { $in: tags } },
@@ -179,7 +178,7 @@ export default abstract class MangaMongo {
       .toArray();
   }
 
-  static async postTagsCrawl(data: MangaTagFetch[], type: MangaType) {
+  async postTagsCrawl(data: MangaTagFetch[], type: MangaType) {
     const array: Omit<MangaTagMongo, "_id">[] = data.map((item) => ({
       ...item,
       type,
@@ -197,9 +196,9 @@ export default abstract class MangaMongo {
     return list;
   }
 
-  static async putTagsCrawl(data: MangaLink[], type: MangaType) {
+  async putTagsCrawl(data: MangaLink[], type: MangaType) {
     // get tags from database
-    const tagList = await MangaMongo.getTagList(
+    const tagList = await this.getTagList(
       type,
       data.map((item) => item.name)
     );
@@ -234,7 +233,7 @@ export default abstract class MangaMongo {
           });
         }
 
-        const listId = await MangaMongo.postTagsCrawl(list, type);
+        const listId = await this.postTagsCrawl(list, type);
 
         tagList.forEach((item) => {
           tagDetail.push(new ObjectId(item._id));
@@ -253,7 +252,7 @@ export default abstract class MangaMongo {
     return tagDetail;
   }
 
-  static async getAuthorList(type: MangaType, names: string[]) {
+  async getAuthorList(type: MangaType, names: string[]) {
     return await mangaAuthorCollection
       .find<MangaAuthorClient>(
         { type, name: { $in: names } },
@@ -262,7 +261,7 @@ export default abstract class MangaMongo {
       .toArray();
   }
 
-  static async postAuthorsCrawl(data: MangaAuthorFetch[], type: MangaType) {
+  async postAuthorsCrawl(data: MangaAuthorFetch[], type: MangaType) {
     const array: Omit<MangaAuthorMongo, "_id">[] = data.map((item) => ({
       ...item,
       type,
@@ -280,17 +279,17 @@ export default abstract class MangaMongo {
     return list;
   }
 
-  static async putAuthorCrawl(
+  async putAuthorCrawl(
     data: string | MangaLink | MangaLink[] | undefined,
     type: MangaType
   ) {
     const authorDetail: ObjectId[] = [];
     if (typeof data == "string") {
       // no link
-      const authorList = await MangaMongo.getAuthorList(type, [""]);
+      const authorList = await this.getAuthorList(type, [""]);
 
       if (authorList.length == 0) {
-        const listId = await MangaMongo.postAuthorsCrawl(
+        const listId = await this.postAuthorsCrawl(
           [{ href: "", name: data, type }],
           type
         );
@@ -307,7 +306,7 @@ export default abstract class MangaMongo {
       // array obj
       try {
         const list = data as MangaLink[];
-        const authorList = await MangaMongo.getAuthorList(
+        const authorList = await this.getAuthorList(
           type,
           list.map((item) => item.name)
         );
@@ -328,7 +327,7 @@ export default abstract class MangaMongo {
 
           // add any new author
           if (filter.length != 0) {
-            const listId = await MangaMongo.postAuthorsCrawl(
+            const listId = await this.postAuthorsCrawl(
               filter.map((item) => ({ ...item, type })),
               type
             );
@@ -349,13 +348,10 @@ export default abstract class MangaMongo {
       } catch (error) {
         // obj
         const item = data as MangaLink;
-        const authorList = await MangaMongo.getAuthorList(type, [item.name]);
+        const authorList = await this.getAuthorList(type, [item.name]);
 
         if (authorList.length == 0) {
-          const listId = await MangaMongo.postAuthorsCrawl(
-            [{ ...item, type }],
-            type
-          );
+          const listId = await this.postAuthorsCrawl([{ ...item, type }], type);
 
           listId.forEach((item) => {
             authorDetail.push(new ObjectId(item));
@@ -371,7 +367,7 @@ export default abstract class MangaMongo {
     return authorDetail;
   }
 
-  static async getDetail(id: ObjectId, type: MangaType) {
+  async getDetail(id: ObjectId, type: MangaType) {
     return await mangaDetailCollection
       .aggregate<MangaDetailClient>([
         { $match: { _id: id, type } },
@@ -405,7 +401,7 @@ export default abstract class MangaMongo {
       .next();
   }
 
-  static async getDetailExist(href: string, type: MangaType) {
+  async getDetailExist(href: string, type: MangaType) {
     return await mangaDetailCollection.findOne<{
       _id: string;
       thumnail: string;
@@ -413,18 +409,15 @@ export default abstract class MangaMongo {
     }>({ type, href }, { projection: { _id: 1, thumnail: 1, status: 1 } });
   }
 
-  static async postDetailCrawl(
+  async postDetailCrawl(
     data: MangaDetailFetch,
     type: MangaType,
     chapterLimit: number
   ) {
     const { authors, tags, chapters, ...detail } = data;
 
-    const tagDetail: ObjectId[] = await MangaMongo.putTagsCrawl(tags, type);
-    const authorDetail: ObjectId[] = await MangaMongo.putAuthorCrawl(
-      authors,
-      type
-    );
+    const tagDetail: ObjectId[] = await this.putTagsCrawl(tags, type);
+    const authorDetail: ObjectId[] = await this.putAuthorCrawl(authors, type);
 
     // insert detail
     const { insertedId: detailId } = await mangaDetailCollection.insertOne({
@@ -434,23 +427,13 @@ export default abstract class MangaMongo {
     });
 
     // add thumnail
-    await MangaMongo.postThumnailCrawl(
-      detailId,
-      type,
-      detail.href,
-      detail.thumnail
-    );
+    await this.postThumnailCrawl(detailId, type, detail.href, detail.thumnail);
 
     // add chapter
-    await MangaMongo.postDetailChapterCrawl(
-      detailId,
-      type,
-      chapters,
-      chapterLimit
-    );
+    await this.postDetailChapterCrawl(detailId, type, chapters, chapterLimit);
   }
 
-  static async putDetailCrawl(
+  async putDetailCrawl(
     id: ObjectId,
     type: MangaType,
     data: { [key: string]: unknown }
@@ -458,20 +441,20 @@ export default abstract class MangaMongo {
     await mangaDetailCollection.updateOne({ _id: id, type }, { $set: data });
   }
 
-  static async deleteDetail(id: ObjectId, type: MangaType) {
+  async deleteDetail(id: ObjectId, type: MangaType) {
     await mangaDetailCollection.deleteOne({ _id: id, type });
-    await MangaMongo.deleteThumnail(id, type);
-    await MangaMongo.deleteDetailChapterAll(id, type);
+    await this.deleteThumnail(id, type);
+    await this.deleteDetailChapterAll(id, type);
   }
 
-  static async getThumnail(id: ObjectId, type: MangaType) {
+  async getThumnail(id: ObjectId, type: MangaType) {
     return await mangaThumnailCollection.findOne<MangaThumnailClient>(
       { detailId: id, type },
       { projection: { type: 0, createdAt: 0, updatedAt: 0 } }
     );
   }
 
-  static async postThumnailCrawl(
+  async postThumnailCrawl(
     id: ObjectId,
     type: MangaType,
     href: string,
@@ -492,7 +475,7 @@ export default abstract class MangaMongo {
     });
   }
 
-  static async deleteThumnail(id: ObjectId, type: MangaType) {
+  async deleteThumnail(id: ObjectId, type: MangaType) {
     await MangaFirebase.deleteThumnail(id.toString(), type);
 
     await mangaThumnailCollection.deleteOne({
@@ -501,7 +484,7 @@ export default abstract class MangaMongo {
     });
   }
 
-  static async getDetailChapter(
+  async getDetailChapter(
     detailId: ObjectId,
     chapterId: ObjectId,
     type: MangaType
@@ -631,7 +614,7 @@ export default abstract class MangaMongo {
       .next();
   }
 
-  static async getDetailChapters(id: ObjectId, type: MangaType) {
+  async getDetailChapters(id: ObjectId, type: MangaType) {
     return await mangaDetailChapterCollection
       .find<MangaDetailChapterClient>(
         { detailId: id, type },
@@ -641,7 +624,7 @@ export default abstract class MangaMongo {
       .toArray();
   }
 
-  static async getDetailChapterList(id: ObjectId, type: MangaType) {
+  async getDetailChapterList(id: ObjectId, type: MangaType) {
     return await mangaDetailChapterCollection
       .find<{
         _id: string;
@@ -651,7 +634,7 @@ export default abstract class MangaMongo {
       .toArray();
   }
 
-  static async postDetailChapterCrawl(
+  async postDetailChapterCrawl(
     id: ObjectId,
     type: MangaType,
     data: MangaDetailChapterFetch[],
@@ -662,7 +645,7 @@ export default abstract class MangaMongo {
     // update lastest to detail
     const lastest = [...data].sort((a, b) => b.time - a.time).shift();
     if (lastest) {
-      await MangaMongo.putDetailCrawl(id, type, {
+      await this.putDetailCrawl(id, type, {
         lastestUpdated: lastest.time,
       });
     }
@@ -727,7 +710,7 @@ export default abstract class MangaMongo {
     }
   }
 
-  static async deleteDetailChapterAll(id: ObjectId, type: MangaType) {
+  async deleteDetailChapterAll(id: ObjectId, type: MangaType) {
     const array = await mangaDetailChapterCollection
       .find({ detailId: id, type }, {})
       .toArray();
@@ -736,11 +719,11 @@ export default abstract class MangaMongo {
     for (let index = 0; index < length; index++) {
       const { _id } = array[index];
       await mangaDetailChapterCollection.deleteOne({ _id });
-      await MangaMongo.deleteDetailChapterImageAll(id, _id, type);
+      await this.deleteDetailChapterImageAll(id, _id, type);
     }
   }
 
-  static async deleteDetailChapters(
+  async deleteDetailChapters(
     detailId: ObjectId,
     chapterIds: string[],
     type: MangaType
@@ -755,12 +738,12 @@ export default abstract class MangaMongo {
       });
 
       if (value?._id) {
-        await MangaMongo.deleteDetailChapterImageAll(detailId, value._id, type);
+        await this.deleteDetailChapterImageAll(detailId, value._id, type);
       }
     }
   }
 
-  static async deleteDetailChapterImageAll(
+  async deleteDetailChapterImageAll(
     detailId: ObjectId,
     chapterId: ObjectId,
     type: MangaType

@@ -3,30 +3,30 @@ import tryCatch from "utils/tryCatch";
 import MangaController from "./mangaController";
 
 const mangaRouter = Router();
+const mangaController = new MangaController();
 
-mangaRouter.get("/test", tryCatch(MangaController.test));
-mangaRouter.get("/tagCrawl", tryCatch(MangaController.tagCrawl));
-mangaRouter.get("/tag", tryCatch(MangaController.tag));
+mangaRouter.get("/tagCrawl", tryCatch(mangaController.tagCrawl));
+mangaRouter.get("/tag", tryCatch(mangaController.tag));
 mangaRouter.get(
   "/chapterOctoparse",
-  tryCatch(MangaController.chapterOctoparse)
+  tryCatch(mangaController.chapterOctoparse)
 );
-mangaRouter.get("/chapter/:id", tryCatch(MangaController.chapter));
+mangaRouter.get("/chapter/:id", tryCatch(mangaController.chapter));
 mangaRouter.get(
   "/chapter/:detailId/:chapterId",
-  tryCatch(MangaController.chapterImage)
+  tryCatch(mangaController.chapterImage)
 );
-mangaRouter.get("/thumnail/:id", tryCatch(MangaController.thumnail));
-mangaRouter.get("/detailCrawl", tryCatch(MangaController.detailCrawl));
+mangaRouter.get("/thumnail/:id", tryCatch(mangaController.thumnail));
+mangaRouter.get("/detailCrawl", tryCatch(mangaController.detailCrawl));
 mangaRouter
   .route("/detail/:id")
-  .get(tryCatch(MangaController.getDetail))
-  .delete(tryCatch(MangaController.deleteDetail));
+  .get(tryCatch(mangaController.getDetail))
+  .delete(tryCatch(mangaController.deleteDetail));
 mangaRouter.get(
   "/lastestOctoparse",
-  tryCatch(MangaController.lastestOctoparse)
+  tryCatch(mangaController.lastestOctoparse)
 );
-mangaRouter.get("/lastestCrawl", tryCatch(MangaController.lastestCrawl));
-mangaRouter.get("/list", tryCatch(MangaController.list));
+mangaRouter.get("/lastestCrawl", tryCatch(mangaController.lastestCrawl));
+mangaRouter.get("/list", tryCatch(mangaController.list));
 
 export default mangaRouter;
