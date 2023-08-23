@@ -105,6 +105,17 @@ export default class UserMongo {
       .next();
   }
 
+  async getFollowMangaList(userId: string, mangaId: string, type: MangaType) {
+    return await userFollowManga.findOne<{ _id: string; createdAt: number }>(
+      {
+        userId,
+        mangaId,
+        type,
+      },
+      { projection: { _id: 1, createdAt: 1 } }
+    );
+  }
+
   async postFollowMangaList(userId: string, mangaId: string, type: MangaType) {
     await userFollowManga.insertOne({
       userId,

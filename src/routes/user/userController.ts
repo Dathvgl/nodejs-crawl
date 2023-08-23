@@ -18,7 +18,7 @@ const mangaTypeExist = (type?: string) => {
 };
 
 export default class UserController {
-  async getFollowManga(req: RequestAuthHandler, res: Response) {
+  async followMangaList(req: RequestAuthHandler, res: Response) {
     const { type, page, sort, order } = req.query as {
       type?: MangaType;
       page?: number;
@@ -40,6 +40,18 @@ export default class UserController {
       order
     );
 
+    res.json(data);
+  }
+
+  async getFollowManga(req: RequestAuthHandler, res: Response) {
+    const { id } = req.params;
+    const { type } = req.query as { type?: MangaType };
+
+    const uid = userExist(req.uid);
+    const mangaType = mangaTypeExist(type);
+    const userMongo = new UserMongo();
+
+    const data = await userMongo.getFollowMangaList(uid, id, mangaType);
     res.json(data);
   }
 
