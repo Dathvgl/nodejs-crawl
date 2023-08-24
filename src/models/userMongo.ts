@@ -105,28 +105,28 @@ export default class UserMongo {
       .next();
   }
 
-  async getFollowMangaList(userId: string, mangaId: string, type: MangaType) {
+  async getFollowManga(userId: string, mangaId: string, type: MangaType) {
     return await userFollowManga.findOne<{ _id: string; createdAt: number }>(
       {
         userId,
-        mangaId,
+        mangaId: new ObjectId(mangaId),
         type,
       },
       { projection: { _id: 1, createdAt: 1 } }
     );
   }
 
-  async postFollowMangaList(userId: string, mangaId: string, type: MangaType) {
+  async postFollowManga(userId: string, mangaId: string, type: MangaType) {
     await userFollowManga.insertOne({
       userId,
-      mangaId,
+      mangaId: new ObjectId(mangaId),
       type,
       createdAt: momentNowTS(),
       updatedAt: momentNowTS(),
     });
   }
 
-  async deleteFollowMangaList(id: string, userId: string, type: MangaType) {
+  async deleteFollowManga(id: string, userId: string, type: MangaType) {
     await userFollowManga.deleteOne({
       _id: new ObjectId(id),
       userId,

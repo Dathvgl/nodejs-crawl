@@ -51,7 +51,7 @@ export default class UserController {
     const mangaType = mangaTypeExist(type);
     const userMongo = new UserMongo();
 
-    const data = await userMongo.getFollowMangaList(uid, id, mangaType);
+    const data = await userMongo.getFollowManga(uid, id, mangaType);
     res.json(data);
   }
 
@@ -63,7 +63,7 @@ export default class UserController {
     const mangaType = mangaTypeExist(type);
     const userMongo = new UserMongo();
 
-    await userMongo.postFollowMangaList(uid, id, mangaType);
+    await userMongo.postFollowManga(uid, id, mangaType);
     res.send("User follow manga");
   }
 
@@ -75,7 +75,7 @@ export default class UserController {
     const mangaType = mangaTypeExist(type);
     const userMongo = new UserMongo();
 
-    await userMongo.deleteFollowMangaList(id, uid, mangaType);
+    await userMongo.deleteFollowManga(id, uid, mangaType);
     res.send("User unfollow manga");
   }
 }
