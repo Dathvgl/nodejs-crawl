@@ -17,4 +17,3 @@ export const mangaDetailChapterImageCollection = mongoDB.collection(
 );
 
 export const userFollowManga = mongoDB.collection("userFollowManga");
-export const userFollowMangaDetail = mongoDB.collection("userFollowMangaDetail");

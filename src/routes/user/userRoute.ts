@@ -15,12 +15,7 @@ userRouter
   .route("/followManga/:id")
   .get(authFirebaseHandler, tryCatch(userController.getFollowManga))
   .post(authFirebaseHandler, tryCatch(userController.postFollowManga))
+  .put(authFirebaseHandler, tryCatch(userController.putFollowManga))
   .delete(authFirebaseHandler, tryCatch(userController.deletefollowManga));
-userRouter
-  .route("/followMangaDetail/:id")
-  .get(authFirebaseHandler, tryCatch(userController.getFollowMangaDetail))
-  .post(authFirebaseHandler, tryCatch(userController.postFollowMangaDetail))
-  .put(authFirebaseHandler, tryCatch(userController.putFollowMangaDetail))
-  .delete(authFirebaseHandler, tryCatch(userController.deletefollowMangaDetail));
 
 export default userRouter;
