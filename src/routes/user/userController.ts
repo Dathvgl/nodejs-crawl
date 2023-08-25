@@ -4,6 +4,7 @@ import UserMongo from "models/userMongo";
 import { RequestAuthHandler } from "types/base";
 import { MangaOrder, MangaSort, MangaType } from "types/manga";
 import { mangaTypes } from "types/variable";
+import { numStrExist } from "utils/check";
 
 const userExist = (str?: string) => {
   if (str) return str;
@@ -77,5 +78,74 @@ export default class UserController {
 
     await userMongo.deleteFollowManga(id, uid, mangaType);
     res.send("User unfollow manga");
+  }
+
+  async getFollowMangaDetail(req: RequestAuthHandler, res: Response) {
+    const { id } = req.params;
+    const { type } = req.query as { type?: MangaType };
+
+    const uid = userExist(req.uid);
+    const mangaType = mangaTypeExist(type);
+    const userMongo = new UserMongo();
+
+    const data = await userMongo.getFollowMangaDetail(uid, id, mangaType);
+    res.json(data);
+  }
+
+  async postFollowMangaDetail(req: RequestAuthHandler, res: Response) {
+    const { id } = req.params;
+    const { type, chapter } = req.query as {
+      type?: MangaType;
+      chapter?: string;
+    };
+
+    const uid = userExist(req.uid);
+    const mangaType = mangaTypeExist(type);
+    const mangaChapter = numStrExist(chapter);
+    const userMongo = new UserMongo();
+
+    await userMongo.postFollowMangaDetail(uid, id, mangaType, mangaChapter);
+    res.send("User follow manga chapter");
+  }
+
+  async putFollowMangaDetail(req: RequestAuthHandler, res: Response) {
+    const { id } = req.params;
+    const { type, currentChapter, lastestChapterList, lastestChapterStore } =
+      req.query as {
+        type?: MangaType;
+        currentChapter?: string;
+        lastestChapterList?: string;
+        lastestChapterStore?: string;
+      };
+
+    const uid = userExist(req.uid);
+    const mangaType = mangaTypeExist(type);
+    const mangaCurrentChapter = numStrExist(currentChapter);
+    const mangaLastestChapterList = numStrExist(lastestChapterList);
+    const mangaLastestChapterStore = numStrExist(lastestChapterStore);
+    const userMongo = new UserMongo();
+
+    await userMongo.putFollowMangaDetail(
+      id,
+      uid,
+      mangaType,
+      mangaCurrentChapter,
+      mangaLastestChapterList,
+      mangaLastestChapterStore
+    );
+
+    res.send("User follow manga chapter");
+  }
+
+  async deletefollowMangaDetail(req: RequestAuthHandler, res: Response) {
+    const { id } = req.params;
+    const { type } = req.query as { type?: MangaType };
+
+    const uid = userExist(req.uid);
+    const mangaType = mangaTypeExist(type);
+    const userMongo = new UserMongo();
+
+    await userMongo.deleteFollowMangaDetail(id, uid, mangaType);
+    res.send("User unfollow manga chapter");
   }
 }

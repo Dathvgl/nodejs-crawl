@@ -1,5 +1,5 @@
 import { MangaSort, MangaOrder, MangaType } from "types/manga";
-import { userFollowManga } from "./mongo";
+import { userFollowManga, userFollowMangaDetail } from "./mongo";
 import { envs } from "index";
 import { momentNowTS } from "utils/date";
 import { ObjectId } from "mongodb";
@@ -128,6 +128,64 @@ export default class UserMongo {
 
   async deleteFollowManga(id: string, userId: string, type: MangaType) {
     await userFollowManga.deleteOne({
+      _id: new ObjectId(id),
+      userId,
+      type,
+    });
+  }
+
+  async getFollowMangaDetail(userId: string, mangaId: string, type: MangaType) {
+    return await userFollowMangaDetail.findOne<{
+      _id: string;
+      currentChapter: number;
+      lastestChapter: number;
+    }>(
+      {
+        userId,
+        mangaId: new ObjectId(mangaId),
+        type,
+      },
+      { projection: { _id: 1, currentChapter: 1, lastestChapter: 1 } }
+    );
+  }
+
+  async postFollowMangaDetail(
+    userId: string,
+    mangaId: string,
+    type: MangaType,
+    chapter: number
+  ) {
+    await userFollowMangaDetail.insertOne({
+      userId,
+      mangaId: new ObjectId(mangaId),
+      type,
+      currentChapter: chapter,
+      lastestChapter: chapter,
+      createdAt: momentNowTS(),
+      updatedAt: momentNowTS(),
+    });
+  }
+  async putFollowMangaDetail(
+    id: string,
+    userId: string,
+    type: MangaType,
+    currentChapter: number,
+    lastestChapterList: number,
+    lastestChapterStore: number
+  ) {
+    const updates: any = { currentChapter };
+    if (lastestChapterList < lastestChapterStore) {
+      updates.lastestChapter = currentChapter;
+    }
+
+    await userFollowMangaDetail.updateOne(
+      { _id: new ObjectId(id), userId, type },
+      { $set: updates }
+    );
+  }
+
+  async deleteFollowMangaDetail(id: string, userId: string, type: MangaType) {
+    await userFollowMangaDetail.deleteOne({
       _id: new ObjectId(id),
       userId,
       type,

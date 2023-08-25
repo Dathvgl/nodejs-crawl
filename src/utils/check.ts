@@ -29,6 +29,10 @@ export function numExist(num: number | null | undefined) {
   return num ? num : 0;
 }
 
+export function numStrExist(num: string | undefined) {
+  return num ? Number.parseFloat(num) : 0;
+}
+
 export function numFromStr(str?: string) {
   if (!str) return 0;
   return parseInt(str.match(/\d+(?:\.?\d+)?/g)?.[0] ?? "0");
