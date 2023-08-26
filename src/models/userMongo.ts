@@ -150,22 +150,14 @@ export default class UserMongo {
     userId: string,
     type: MangaType,
     replace: boolean,
-    currentChapter: string,
-    lastestChapterList: string,
-    lastestChapterStore: string
+    currentChapter: string
   ) {
     const updates: any = {
       currentChapterId: new ObjectId(currentChapter),
       updatedAt: momentNowTS(),
     };
 
-    if (lastestChapterList != lastestChapterStore) {
-      updates.lastestChapterId = new ObjectId(currentChapter);
-    }
-
-    if (replace) {
-      updates.lastestChapterId = new ObjectId(currentChapter);
-    }
+    if (replace) updates.lastestChapterId = new ObjectId(currentChapter);
 
     await userFollowManga.updateOne(
       { _id: new ObjectId(id), userId, type },

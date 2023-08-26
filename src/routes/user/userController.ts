@@ -74,25 +74,15 @@ export default class UserController {
 
   async putFollowManga(req: RequestAuthHandler, res: Response) {
     const { id } = req.params;
-    const {
-      type,
-      replace,
-      currentChapter,
-      lastestChapterList,
-      lastestChapterStore,
-    } = req.body as {
+    const { type, replace, currentChapter } = req.body as {
       type?: MangaType;
       replace?: boolean;
       currentChapter?: string;
-      lastestChapterList?: string;
-      lastestChapterStore?: string;
     };
 
     const uid = userExist(req.uid);
     const mangaType = mangaTypeExist(type);
     const mangaCurrentChapter = strExist(currentChapter);
-    const mangaLastestChapterList = strExist(lastestChapterList);
-    const mangaLastestChapterStore = strExist(lastestChapterStore);
     if (!replace) throw new CustomError("Invalid change follow manga", 500);
 
     const userMongo = new UserMongo();
@@ -102,9 +92,7 @@ export default class UserController {
       uid,
       mangaType,
       replace,
-      mangaCurrentChapter,
-      mangaLastestChapterList,
-      mangaLastestChapterStore
+      mangaCurrentChapter
     );
 
     res.send("User follow manga chapter");
