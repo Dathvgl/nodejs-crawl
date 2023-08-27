@@ -108,8 +108,8 @@ export default class UserMongo {
   async getFollowManga(userId: string, mangaId: string, type: MangaType) {
     return await userFollowManga.findOne<{
       _id: string;
-      currentChapter: number;
-      lastestChapter: number;
+      currentChapterId: string;
+      lastestChapterId: string;
       createdAt: number;
     }>(
       {
@@ -120,8 +120,8 @@ export default class UserMongo {
       {
         projection: {
           _id: 1,
-          currentChapter: 1,
-          lastestChapter: 1,
+          currentChapterId: 1,
+          lastestChapterId: 1,
           createdAt: 1,
         },
       }
@@ -138,8 +138,8 @@ export default class UserMongo {
       userId,
       mangaId: new ObjectId(mangaId),
       type,
-      currentChapterId: new ObjectId(chapter),
-      lastestChapterId: new ObjectId(chapter),
+      currentChapterId: new ObjectId(chapter == "empty" ? 11 : chapter),
+      lastestChapterId: new ObjectId(chapter == "empty" ? 11 : chapter),
       createdAt: momentNowTS(),
       updatedAt: momentNowTS(),
     });

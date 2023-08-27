@@ -83,7 +83,10 @@ export default class UserController {
     const uid = userExist(req.uid);
     const mangaType = mangaTypeExist(type);
     const mangaCurrentChapter = strExist(currentChapter);
-    if (!replace) throw new CustomError("Invalid change follow manga", 500);
+
+    if (replace == undefined) {
+      throw new CustomError("Invalid change follow manga", 500);
+    }
 
     const userMongo = new UserMongo();
 
