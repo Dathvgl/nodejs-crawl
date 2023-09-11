@@ -17,5 +17,10 @@ userRouter
   .post(authFirebaseHandler, tryCatch(userController.postFollowManga))
   .put(authFirebaseHandler, tryCatch(userController.putFollowManga))
   .delete(authFirebaseHandler, tryCatch(userController.deletefollowManga));
+userRouter.get(
+  "/firebaseUser/:id",
+  authFirebaseHandler,
+  tryCatch(userController.firebaseUser)
+);
 
 export default userRouter;

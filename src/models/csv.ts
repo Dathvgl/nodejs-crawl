@@ -1,6 +1,5 @@
 import csv from "csv";
 import fs from "fs";
-import { From, To, replaceInFile } from "replace-in-file";
 
 export type CSVProps = {
   dir: string;

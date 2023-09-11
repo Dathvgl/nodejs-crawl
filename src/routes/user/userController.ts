@@ -1,5 +1,7 @@
-import { Response } from "express";
+import { Request, Response } from "express";
+import { UserRecord } from "firebase-admin/auth";
 import { CustomError } from "models/errror";
+import { auths } from "models/firebase/firebaseService";
 import UserMongo from "models/userMongo";
 import { RequestAuthHandler } from "types/base";
 import { MangaOrder, MangaSort, MangaType } from "types/manga";
@@ -111,5 +113,42 @@ export default class UserController {
 
     await userMongo.deleteFollowManga(id, uid, mangaType);
     res.send("User unfollow manga");
+  }
+
+  async firebaseUser(req: Request, res: Response) {
+    const { id } = req.params;
+    const length = auths.length;
+
+    const user: {
+      uid?: string;
+      email?: string;
+      photoURL?: string;
+      displayName?: string;
+    } = {};
+
+    for (let index = 0; index < length; index++) {
+      const auth = auths[index];
+
+      try {
+        const record = await auth
+          .getUser(id)
+          .then(({ email, photoURL, displayName }) => ({
+            email,
+            photoURL,
+            displayName,
+          }));
+
+        user.uid = id;
+        user.email = record.email;
+        user.photoURL = record.photoURL;
+        user.displayName = record.displayName;
+
+        break;
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    res.json(user);
   }
 }
