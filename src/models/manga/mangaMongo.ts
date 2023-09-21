@@ -367,6 +367,43 @@ export default class MangaMongo {
     return authorDetail;
   }
 
+  async getDetailAllId(type: MangaType) {
+    return await mangaDetailCollection
+      .aggregate<{ _id: string }[]>([
+        {
+          $match: { type },
+          $project: { _id: 1 },
+        },
+      ])
+      .toArray();
+  }
+
+  async getDetailChapterAllId(type: MangaType) {
+    const data = await mangaDetailCollection
+      .aggregate<{ data: { _id: string; chapters: { _id: string }[] } }>([
+        {
+          $facet: {
+            data: [
+              { $match: { type } },
+              { $project: { _id: 1 } },
+              {
+                $lookup: {
+                  from: "mangaDetailChapter",
+                  localField: "_id",
+                  foreignField: "detailId",
+                  pipeline: [{ $project: { _id: 1 } }],
+                  as: "chapters",
+                },
+              },
+            ],
+          },
+        },
+      ])
+      .next();
+
+    return data ? data.data : [];
+  }
+
   async getDetail(id: ObjectId, type: MangaType) {
     return await mangaDetailCollection
       .aggregate<MangaDetailClient>([

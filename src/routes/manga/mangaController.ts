@@ -181,6 +181,22 @@ class MangaController {
     res.json(data);
   }
 
+  async getDetailAllId(req: Request, res: Response) {
+    const { type } = req.query as { type?: MangaType };
+    const mangaType = mangaTypeExist(type);
+    const mangaMongo = new MangaMongo();
+    res.json(await mangaMongo.getDetailAllId(mangaType));
+  }
+
+  async getDetailChapterAllId(req: Request, res: Response) {
+    const { type } = req.query as { type?: MangaType };
+    const mangaType = mangaTypeExist(type);
+    const mangaMongo = new MangaMongo();
+    res.json(
+      await mangaMongo.getDetailChapterAllId(mangaType)
+    );
+  }
+
   async getDetail(req: Request, res: Response) {
     const { id } = req.params;
     const { type } = req.query as { type?: MangaType };
