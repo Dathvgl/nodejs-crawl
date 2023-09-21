@@ -369,12 +369,7 @@ export default class MangaMongo {
 
   async getDetailAllId(type: MangaType) {
     return await mangaDetailCollection
-      .aggregate<{ _id: string }[]>([
-        {
-          $match: { type },
-          $project: { _id: 1 },
-        },
-      ])
+      .find({ type }, { projection: { _id: 1 } })
       .toArray();
   }
 
