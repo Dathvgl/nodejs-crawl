@@ -194,6 +194,19 @@ class MangaController {
     res.json(data);
   }
 
+  async getDetailFollow(req: Request, res: Response) {
+    const { id } = req.params;
+    const { type } = req.query as { type?: MangaType };
+
+    const mangaType = mangaTypeExist(type);
+    if (!id) throw new CustomError("Invalid detail id", 500);
+
+    const mangaMongo = new MangaMongo();
+    const data = await mangaMongo.getDetailFollow(new ObjectId(id), mangaType);
+
+    res.send(data);
+  }
+
   async deleteDetail(req: Request, res: Response) {
     const { id } = req.params;
     const { type } = req.query as { type?: MangaType };

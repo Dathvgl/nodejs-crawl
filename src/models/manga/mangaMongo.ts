@@ -401,6 +401,13 @@ export default class MangaMongo {
       .next();
   }
 
+  async getDetailFollow(id: ObjectId, type: MangaType) {
+    return await mangaDetailCollection.findOne<{ watched: number }>(
+      { _id: id, type },
+      { projection: { watched: 1 } }
+    );
+  }
+
   async getDetailExist(href: string, type: MangaType) {
     return await mangaDetailCollection.findOne<{
       _id: string;
