@@ -181,22 +181,6 @@ class MangaController {
     res.json(data);
   }
 
-  async getDetailAllId(req: Request, res: Response) {
-    const { type } = req.query as { type?: MangaType };
-    const mangaType = mangaTypeExist(type);
-    const mangaMongo = new MangaMongo();
-    res.json(await mangaMongo.getDetailAllId(mangaType));
-  }
-
-  async getDetailChapterAllId(req: Request, res: Response) {
-    const { type } = req.query as { type?: MangaType };
-    const mangaType = mangaTypeExist(type);
-    const mangaMongo = new MangaMongo();
-    res.json(
-      await mangaMongo.getDetailChapterAllId(mangaType)
-    );
-  }
-
   async getDetail(req: Request, res: Response) {
     const { id } = req.params;
     const { type } = req.query as { type?: MangaType };
@@ -221,6 +205,38 @@ class MangaController {
 
     await mangaMongo.deleteDetail(new ObjectId(id), mangaType);
     res.send("Delete Manga");
+  }
+
+  async putDetailChapter(req: Request, res: Response) {
+    const { detailId, chapterId } = req.params;
+
+    const { type } = req.query as { type?: MangaType };
+    const mangaType = mangaTypeExist(type);
+    const mangaMongo = new MangaMongo();
+
+    await mangaMongo.putDetailChapter(
+      new ObjectId(detailId),
+      new ObjectId(chapterId),
+      mangaType
+    );
+
+    res.send("Put detail chapter");
+  }
+
+  async deleteDetailChapter(req: Request, res: Response) {
+    const { detailId, chapterId } = req.params;
+
+    const { type } = req.query as { type?: MangaType };
+    const mangaType = mangaTypeExist(type);
+    const mangaMongo = new MangaMongo();
+
+    await mangaMongo.deleteDetailChapter(
+      new ObjectId(detailId),
+      new ObjectId(chapterId),
+      mangaType
+    );
+
+    res.send("Delete detail chapter");
   }
 
   async lastestOctoparse(req: Request, res: Response) {

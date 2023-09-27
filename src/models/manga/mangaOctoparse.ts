@@ -68,14 +68,6 @@ export default class MangaOctoparse {
     for (let index = 0; index < length; index++) {
       const item = data[index];
 
-      console.log(
-        `null? ${obj == null}`,
-        `new href? ${obj?.href == new URL(item.href).pathname}`,
-        `index? ${index == length - 1}`
-      );
-
-      console.log(obj?.href ?? "", new URL(item.href).pathname);
-
       if (obj == null) {
         obj = {
           type,

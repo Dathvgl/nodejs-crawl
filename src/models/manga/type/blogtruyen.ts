@@ -23,20 +23,11 @@ export default class Blogtruyen extends MangaFactory {
     const $ = cheerio.load(await this.fetchWebsite(link));
 
     const tagMain = $(tagJson["main"]);
-    const tagHandle = (node: cheerio.Cheerio<cheerio.AnyNode>) => {
-      switch (this.type) {
-        case "blogtruyen":
-          return strExist(node.attr("href"));
-        case "nettruyen":
-        default:
-          return new URL(strExist(node.attr("href"))).pathname;
-      }
-    };
 
     const tags = tagMain
       .find("a")
       .map((_, item) => ({
-        href: tagHandle($(item)),
+        href: strExist($(item).attr("href")),
         name: $(item).text(),
       }))
       .get()

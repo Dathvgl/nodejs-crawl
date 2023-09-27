@@ -18,15 +18,14 @@ mangaRouter.get(
 );
 mangaRouter.get("/thumnail/:id", tryCatch(mangaController.thumnail));
 mangaRouter.get("/detailCrawl", tryCatch(mangaController.detailCrawl));
-mangaRouter.get("/getDetailAllId", tryCatch(mangaController.getDetailAllId));
-mangaRouter.get(
-  "/getDetailChapterAllId",
-  tryCatch(mangaController.getDetailChapterAllId)
-);
 mangaRouter
   .route("/detail/:id")
   .get(tryCatch(mangaController.getDetail))
   .delete(tryCatch(mangaController.deleteDetail));
+mangaRouter
+  .route("detailChapter")
+  .put(tryCatch(mangaController.putDetailChapter))
+  .delete(tryCatch(mangaController.deleteDetailChapter));
 mangaRouter.get(
   "/lastestOctoparse",
   tryCatch(mangaController.lastestOctoparse)

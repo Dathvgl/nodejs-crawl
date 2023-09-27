@@ -367,38 +367,6 @@ export default class MangaMongo {
     return authorDetail;
   }
 
-  async getDetailAllId(type: MangaType) {
-    return await mangaDetailCollection
-      .find({ type }, { projection: { _id: 1 } })
-      .toArray();
-  }
-
-  async getDetailChapterAllId(type: MangaType) {
-    const data = await mangaDetailCollection
-      .aggregate<{ data: { _id: string; chapters: { _id: string }[] } }>([
-        {
-          $facet: {
-            data: [
-              { $match: { type } },
-              { $project: { _id: 1 } },
-              {
-                $lookup: {
-                  from: "mangaDetailChapter",
-                  localField: "_id",
-                  foreignField: "detailId",
-                  pipeline: [{ $project: { _id: 1 } }],
-                  as: "chapters",
-                },
-              },
-            ],
-          },
-        },
-      ])
-      .next();
-
-    return data ? data.data : [];
-  }
-
   async getDetail(id: ObjectId, type: MangaType) {
     return await mangaDetailCollection
       .aggregate<MangaDetailClient>([
@@ -471,6 +439,36 @@ export default class MangaMongo {
     data: { [key: string]: unknown }
   ) {
     await mangaDetailCollection.updateOne({ _id: id, type }, { $set: data });
+  }
+
+  async putDetailFollow(id: ObjectId, type: MangaType, num: number) {
+    await mangaDetailCollection.updateOne(
+      { _id: id, type },
+      { $inc: { followed: num } }
+    );
+  }
+
+  async putDetailChapter(
+    detailId: ObjectId,
+    chapterId: ObjectId,
+    type: MangaType
+  ) {
+    await mangaDetailCollection.updateOne(
+      {
+        _id: detailId,
+        type,
+      },
+      { $inc: { watched: 1 } }
+    );
+
+    await mangaDetailChapterCollection.updateOne(
+      {
+        _id: chapterId,
+        detailId,
+        type,
+      },
+      { $inc: { watched: 1 } }
+    );
   }
 
   async deleteDetail(id: ObjectId, type: MangaType) {
@@ -755,6 +753,36 @@ export default class MangaMongo {
     }
   }
 
+  async deleteDetailChapter(
+    detailId: ObjectId,
+    chapterId: ObjectId,
+    type: MangaType
+  ) {
+    const data =
+      await mangaDetailChapterCollection.findOne<MangaDetailChapterClient>({
+        _id: chapterId,
+        type,
+      });
+
+    if (data?._id) {
+      await mangaDetailChapterCollection.deleteOne({ _id: chapterId, type });
+
+      await mangaDetailCollection.updateOne(
+        {
+          _id: detailId,
+          type,
+        },
+        { $inc: { watched: -data.watched } }
+      );
+
+      await this.deleteDetailChapterImageAll(
+        detailId,
+        new ObjectId(data._id),
+        type
+      );
+    }
+  }
+
   async deleteDetailChapters(
     detailId: ObjectId,
     chapterIds: string[],
@@ -764,13 +792,29 @@ export default class MangaMongo {
     const length = objIds.length;
     for (let index = 0; index < length; index++) {
       const item = objIds[index];
-      const { value } = await mangaDetailChapterCollection.findOneAndDelete({
-        _id: item,
-        type,
-      });
 
-      if (value?._id) {
-        await this.deleteDetailChapterImageAll(detailId, value._id, type);
+      const data =
+        await mangaDetailChapterCollection.findOne<MangaDetailChapterClient>({
+          _id: item,
+          type,
+        });
+
+      if (data?._id) {
+        await mangaDetailChapterCollection.deleteOne({ _id: item, type });
+
+        await mangaDetailCollection.updateOne(
+          {
+            _id: detailId,
+            type,
+          },
+          { $inc: { watched: -data.watched } }
+        );
+
+        await this.deleteDetailChapterImageAll(
+          detailId,
+          new ObjectId(data._id),
+          type
+        );
       }
     }
   }

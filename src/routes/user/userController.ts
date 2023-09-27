@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import { UserRecord } from "firebase-admin/auth";
 import { CustomError } from "models/errror";
 import { auths } from "models/firebase/firebaseService";
+import MangaMongo from "models/manga/mangaMongo";
 import UserMongo from "models/userMongo";
+import { ObjectId } from "mongodb";
 import { RequestAuthHandler } from "types/base";
 import { MangaOrder, MangaSort, MangaType } from "types/manga";
 import { mangaTypes } from "types/variable";
@@ -68,9 +70,13 @@ export default class UserController {
     const uid = userExist(req.uid);
     const mangaType = mangaTypeExist(type);
     const mangaChapter = strExist(chapter);
+
     const userMongo = new UserMongo();
+    const mangaMongo = new MangaMongo();
 
     await userMongo.postFollowManga(uid, id, mangaType, mangaChapter);
+    await mangaMongo.putDetailFollow(new ObjectId(id), mangaType, 1);
+
     res.send("User follow manga");
   }
 
@@ -109,9 +115,13 @@ export default class UserController {
 
     const uid = userExist(req.uid);
     const mangaType = mangaTypeExist(type);
+
     const userMongo = new UserMongo();
+    const mangaMongo = new MangaMongo();
 
     await userMongo.deleteFollowManga(id, uid, mangaType);
+    await mangaMongo.putDetailFollow(new ObjectId(id), mangaType, -1);
+
     res.send("User unfollow manga");
   }
 
