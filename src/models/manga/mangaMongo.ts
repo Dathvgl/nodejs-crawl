@@ -689,10 +689,10 @@ export default class MangaMongo {
 
     const order = [...data].sort((a, b) => {
       const ax = a.title.match(/\d+(?:\.?\d+)?/g);
-      const x = ax ? parseFloat(ax[0]) : -1;
+      const x = ax ? parseFloat(ax[ax.length - 1]) : -1;
 
       const by = b.title.match(/\d+(?:\.?\d+)?/g);
-      const y = by ? parseFloat(by[0]) : -1;
+      const y = by ? parseFloat(by[by.length - 1]) : -1;
 
       return x - y;
     });

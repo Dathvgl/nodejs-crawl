@@ -31,8 +31,17 @@ export default class MangaService {
     if (!str) return momentNowTS();
 
     switch (type) {
-      case "blogtruyen":
-        return parseInt(moment(new Date(str)).format("X"));
+      case "blogtruyen": {
+        const split = str.split(" ");
+        const time = split[1];
+        const date = split[0].split("/");
+
+        return parseInt(
+          moment(new Date(`${date[1]}/${date[0]}/${date[2]} ${time}`)).format(
+            "X"
+          )
+        );
+      }
       case "nettruyen":
       default: {
         if (str.includes("giây")) {
