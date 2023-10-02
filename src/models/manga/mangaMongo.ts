@@ -713,7 +713,7 @@ export default class MangaMongo {
       const { insertedId: chapterId } =
         await mangaDetailChapterCollection.insertOne({
           ...rest,
-          chapter: chapter ? parseFloat(chapter[0]) : -1,
+          chapter: chapter ? parseFloat(chapter[chapter.length - 1]) : -1,
           type,
           detailId: id,
           createdAt: momentNowTS(),

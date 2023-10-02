@@ -32,7 +32,7 @@ export default class MangaService {
 
     switch (type) {
       case "blogtruyen":
-        return parseInt(moment(new Date("01/05/2023 20:04")).format("X"));
+        return parseInt(moment(new Date(str)).format("X"));
       case "nettruyen":
       default: {
         if (str.includes("giây")) {
