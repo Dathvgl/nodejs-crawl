@@ -167,7 +167,7 @@ export default class UserMongo {
 
   async deleteFollowManga(id: string, userId: string, type: MangaType) {
     await userFollowManga.deleteOne({
-      _id: new ObjectId(id),
+      mangaId: new ObjectId(id),
       userId,
       type,
     });
