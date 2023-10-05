@@ -160,7 +160,7 @@ export default class UserMongo {
     if (replace) updates.lastestChapterId = new ObjectId(currentChapter);
 
     await userFollowManga.updateOne(
-      { _id: new ObjectId(id), userId, type },
+      { mangaId: new ObjectId(id), userId, type },
       { $set: updates }
     );
   }
