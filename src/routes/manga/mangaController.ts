@@ -362,15 +362,29 @@ class MangaController {
   }
 
   async list(req: Request, res: Response) {
-    const { type, page, sort, order, limit, keyword, tag } = req.query as {
-      type?: MangaType;
-      page?: number;
-      sort?: MangaSort;
-      order?: MangaOrder;
-      limit?: string;
-      keyword?: string;
-      tag?: string;
-    };
+    const { type, page, sort, order, limit, keyword, includes, excludes } =
+      req.query as {
+        type?: MangaType;
+        page?: number;
+        sort?: MangaSort;
+        order?: MangaOrder;
+        limit?: string;
+        keyword?: string;
+        includes?: string | string[];
+        excludes?: string | string[];
+      };
+
+    const tagIncludes = includes
+      ? typeof includes == "string"
+        ? [includes]
+        : includes
+      : [];
+
+    const tagExcludes = excludes
+      ? typeof excludes == "string"
+        ? [excludes]
+        : excludes
+      : [];
 
     const mangaType = mangaTypeExist(type);
     if (!sort) throw new CustomError("Invalid sort manga", 500);
@@ -383,9 +397,10 @@ class MangaController {
       page,
       sort,
       order,
+      tagIncludes,
+      tagExcludes,
       limit,
-      keyword,
-      tag ? tag.split(",") : undefined
+      keyword
     );
 
     res.json(data);

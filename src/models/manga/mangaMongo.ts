@@ -37,9 +37,10 @@ export default class MangaMongo {
     page: number = 1,
     sort: MangaSort,
     order: MangaOrder,
+    includes: string[],
+    excludes: string[],
     limit?: string,
-    keyword?: string,
-    tagId?: string[]
+    keyword?: string
   ) {
     const limitBase = parseInt(envs.LIMIT_LIST ?? "20");
     const limitList = parseInt(limit ?? limitBase.toString());
@@ -50,12 +51,13 @@ export default class MangaMongo {
     });
 
     const tagHandle = () => {
-      if (tagId && tagId.length != 0) {
-        const objIds = tagId.map((item) => new ObjectId(item));
-        return { $match: { "tags._id": { $in: objIds } } };
-      }
+      const includesIds = includes.map((item) => new ObjectId(item));
+      const excludesIds = excludes.map((item) => new ObjectId(item));
 
-      return { $match: { "tags._id": { $not: { $in: [] } } } };
+      return [
+        { $match: { "tags._id": { $in: includesIds } } },
+        { $match: { "tags._id": { $nin: excludesIds } } },
+      ];
     };
 
     const sortHandle = () => {
@@ -114,7 +116,7 @@ export default class MangaMongo {
                 as: "chapters",
               },
             },
-            tagHandle(),
+            ...tagHandle(),
             ...sortHandle(),
           ],
           totalPage: [{ $count: "total" }],
