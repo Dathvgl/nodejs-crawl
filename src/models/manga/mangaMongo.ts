@@ -54,10 +54,22 @@ export default class MangaMongo {
       const includesIds = includes.map((item) => new ObjectId(item));
       const excludesIds = excludes.map((item) => new ObjectId(item));
 
-      return [
-        { $match: { "tags._id": { $in: includesIds } } },
-        { $match: { "tags._id": { $nin: excludesIds } } },
-      ];
+      if (includesIds.length != 0 && excludesIds.length != 0) {
+        return [
+          { $match: { "tags._id": { $in: includesIds } } },
+          { $match: { "tags._id": { $nin: excludesIds } } },
+        ];
+      }
+
+      if (includesIds.length != 0) {
+        return [{ $match: { "tags._id": { $in: includesIds } } }];
+      }
+
+      if (excludesIds.length != 0) {
+        return [{ $match: { "tags._id": { $nin: excludesIds } } }];
+      }
+
+      return [];
     };
 
     const sortHandle = () => {
