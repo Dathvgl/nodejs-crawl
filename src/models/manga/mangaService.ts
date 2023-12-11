@@ -21,8 +21,8 @@ export default class MangaService {
         return new Nettruyen(
           type,
           strExist(envs.NETTRUYEN),
-          "puppeteer",
-          "puppeteer"
+          "axios",
+          "axios"
         );
     }
   }

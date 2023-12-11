@@ -7,15 +7,14 @@ const mangaController = new MangaController();
 
 mangaRouter.get("/tagCrawl", tryCatch(mangaController.tagCrawl));
 mangaRouter.get("/tag", tryCatch(mangaController.tag));
-mangaRouter.get(
-  "/chapterOctoparse",
-  tryCatch(mangaController.chapterOctoparse)
-);
+// Get list chapter in manga
 mangaRouter.get("/chapter/:id", tryCatch(mangaController.chapter));
+// Get list image in chapter of manga
 mangaRouter.get(
   "/chapter/:detailId/:chapterId",
   tryCatch(mangaController.chapterImage)
 );
+// Get cover of manga
 mangaRouter.get("/thumnail/:id", tryCatch(mangaController.thumnail));
 mangaRouter.get("/detailCrawl", tryCatch(mangaController.detailCrawl));
 mangaRouter
@@ -27,10 +26,6 @@ mangaRouter
   .route("detailChapter")
   .put(tryCatch(mangaController.putDetailChapter))
   .delete(tryCatch(mangaController.deleteDetailChapter));
-mangaRouter.get(
-  "/lastestOctoparse",
-  tryCatch(mangaController.lastestOctoparse)
-);
 mangaRouter.get("/lastestCrawl", tryCatch(mangaController.lastestCrawl));
 mangaRouter.get("/list", tryCatch(mangaController.list));
 

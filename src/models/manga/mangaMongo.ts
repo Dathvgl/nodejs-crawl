@@ -463,10 +463,13 @@ export default class MangaMongo {
   }
 
   async putDetailFollow(id: ObjectId, type: MangaType, num: number) {
-    await mangaDetailCollection.updateOne(
+    const { value } = (await mangaDetailCollection.findOneAndUpdate(
       { _id: id, type },
-      { $inc: { followed: num } }
-    );
+      { $inc: { followed: num } },
+      { returnDocument: "after" }
+    )) as { value: { _id: string; followed: number } | null };
+
+    return !value ? null : { _id: value._id, followed: value.followed };
   }
 
   async putDetailChapter(
@@ -474,28 +477,58 @@ export default class MangaMongo {
     chapterId: ObjectId,
     type: MangaType
   ) {
-    await mangaDetailCollection.updateOne(
-      {
-        _id: detailId,
-        type,
-      },
-      { $inc: { watched: 1 } }
-    );
+    const { value: detailValue } =
+      (await mangaDetailCollection.findOneAndUpdate(
+        {
+          _id: detailId,
+          type,
+        },
+        { $inc: { watched: 1 } },
+        { returnDocument: "after" }
+      )) as { value: { watched: number } | null };
 
-    await mangaDetailChapterCollection.updateOne(
-      {
-        _id: chapterId,
-        detailId,
-        type,
-      },
-      { $inc: { watched: 1 } }
-    );
+    const { value: chapterValue } =
+      (await mangaDetailChapterCollection.findOneAndUpdate(
+        {
+          _id: chapterId,
+          detailId,
+          type,
+        },
+        { $inc: { watched: 1 } },
+        { returnDocument: "after" }
+      )) as { value: { watched: number } | null };
+
+    return {
+      detail: !detailValue
+        ? null
+        : {
+            _id: detailId,
+            watched: detailValue.watched,
+          },
+      chapter: !chapterValue
+        ? null
+        : {
+            _id: chapterId,
+            watched: chapterValue.watched,
+          },
+    };
   }
 
   async deleteDetail(id: ObjectId, type: MangaType) {
-    await mangaDetailCollection.deleteOne({ _id: id, type });
+    const data = await mangaDetailCollection.findOne<MangaDetailClient>({
+      _id: id,
+      type,
+    });
+
+    await mangaDetailCollection.deleteOne({
+      _id: id,
+      type,
+    });
+
     await this.deleteThumnail(id, type);
     await this.deleteDetailChapterAll(id, type);
+
+    return data;
   }
 
   async getThumnail(id: ObjectId, type: MangaType) {
@@ -512,7 +545,6 @@ export default class MangaMongo {
     thumnail: string
   ) {
     const manga = MangaService.init(type);
-    console.log("url", type, manga.baseUrl + href);
 
     const buffer = await manga.fetchThumnail(manga.baseUrl + href, thumnail);
     const src = await MangaFirebase.addThumnail(buffer, id.toString(), type);
@@ -802,6 +834,8 @@ export default class MangaMongo {
         type
       );
     }
+
+    return data;
   }
 
   async deleteDetailChapters(

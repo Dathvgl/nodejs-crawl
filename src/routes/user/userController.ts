@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { UserRecord } from "firebase-admin/auth";
 import { CustomError } from "models/errror";
 import { auths } from "models/firebase/firebaseService";
 import MangaMongo from "models/manga/mangaMongo";
@@ -8,7 +7,7 @@ import { ObjectId } from "mongodb";
 import { RequestAuthHandler } from "types/base";
 import { MangaOrder, MangaSort, MangaType } from "types/manga";
 import { mangaTypes } from "types/variable";
-import { numStrExist, strExist } from "utils/check";
+import { strExist } from "utils/check";
 
 const userExist = (str?: string) => {
   if (str) return str;
@@ -74,10 +73,15 @@ export default class UserController {
     const userMongo = new UserMongo();
     const mangaMongo = new MangaMongo();
 
-    await userMongo.postFollowManga(uid, id, mangaType, mangaChapter);
+    const data = await userMongo.postFollowManga(
+      uid,
+      id,
+      mangaType,
+      mangaChapter
+    );
     await mangaMongo.putDetailFollow(new ObjectId(id), mangaType, 1);
 
-    res.send("User follow manga");
+    res.json(data);
   }
 
   async putFollowManga(req: RequestAuthHandler, res: Response) {
@@ -120,9 +124,13 @@ export default class UserController {
     const mangaMongo = new MangaMongo();
 
     await userMongo.deleteFollowManga(id, uid, mangaType);
-    await mangaMongo.putDetailFollow(new ObjectId(id), mangaType, -1);
+    const data = await mangaMongo.putDetailFollow(
+      new ObjectId(id),
+      mangaType,
+      -1
+    );
 
-    res.send("User unfollow manga");
+    res.json(data);
   }
 
   async firebaseUser(req: Request, res: Response) {

@@ -43,24 +43,6 @@
     }
   },
   "nettruyen": {
-    "csv": {
-      "main": "src/excels/manga/nettruyen",
-      "headers": [
-        "id",
-        "href",
-        "title",
-        "thumnail",
-        "chapterId1",
-        "chapterIndex1",
-        "chapterTime1",
-        "chapterId2",
-        "chapterIndex2",
-        "chapterTime2",
-        "chapterId3",
-        "chapterIndex3",
-        "chapterTime3"
-      ]
-    },
     "tag": {
       "pathname": "/tim-truyen",
       "shift": true,

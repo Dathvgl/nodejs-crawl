@@ -1,12 +1,9 @@
 import { Request, Response } from "express";
-import CSV from "models/csv";
 import { CustomError } from "models/errror";
 import MangaMongo from "models/manga/mangaMongo";
-import MangaOctoparse from "models/manga/mangaOctoparse";
 import MangaService from "models/manga/mangaService";
 import { ObjectId } from "mongodb";
 import { MangaOrder, MangaSort, MangaType } from "types/manga";
-import { DetailOctoparseServer } from "types/octoparse";
 import { mangaTypes } from "types/variable";
 
 const mangaTypeExist = (type?: string) => {
@@ -49,12 +46,6 @@ class MangaController {
 
     const data = await mangaMongo.getTags(mangaType);
     res.json({ data, total: data.length });
-  }
-
-  async chapterOctoparse(req: Request, res: Response) {
-    const mangaOctoparse = new MangaOctoparse();
-    const chapter = await mangaOctoparse.chapter();
-    res.json({ chapter });
   }
 
   async chapter(req: Request, res: Response) {
@@ -215,9 +206,8 @@ class MangaController {
     if (!id) throw new CustomError("Invalid detail id", 500);
 
     const mangaMongo = new MangaMongo();
-
-    await mangaMongo.deleteDetail(new ObjectId(id), mangaType);
-    res.send("Delete Manga");
+    const data = await mangaMongo.deleteDetail(new ObjectId(id), mangaType);
+    res.json(data);
   }
 
   async putDetailChapter(req: Request, res: Response) {
@@ -227,13 +217,13 @@ class MangaController {
     const mangaType = mangaTypeExist(type);
     const mangaMongo = new MangaMongo();
 
-    await mangaMongo.putDetailChapter(
+    const data = await mangaMongo.putDetailChapter(
       new ObjectId(detailId),
       new ObjectId(chapterId),
       mangaType
     );
 
-    res.send("Put detail chapter");
+    res.json(data);
   }
 
   async deleteDetailChapter(req: Request, res: Response) {
@@ -243,29 +233,13 @@ class MangaController {
     const mangaType = mangaTypeExist(type);
     const mangaMongo = new MangaMongo();
 
-    await mangaMongo.deleteDetailChapter(
+    const data = await mangaMongo.deleteDetailChapter(
       new ObjectId(detailId),
       new ObjectId(chapterId),
       mangaType
     );
 
-    res.send("Delete detail chapter");
-  }
-
-  async lastestOctoparse(req: Request, res: Response) {
-    const { type } = req.query as { type?: MangaType };
-    const mangaType = mangaTypeExist(type);
-    const mangaOctoparse = new MangaOctoparse();
-
-    const csv = new CSV({
-      dir: "src/local",
-      file: "LastestLocal.csv",
-      headers: true,
-    });
-
-    const data = await csv.readCSV<DetailOctoparseServer>();
-    const list = await mangaOctoparse.detail(data, mangaType);
-    res.json({ totalData: list.length, data: list });
+    res.json(data);
   }
 
   async lastestCrawl(req: Request, res: Response) {

@@ -3,7 +3,7 @@ import { RequestAuthHandler } from "types/base";
 
 type RequestTryCatch = Request | RequestAuthHandler;
 
-function tryCatch(
+export default function tryCatch(
   controller: (req: RequestTryCatch, res: Response) => Promise<any> | any
 ) {
   return async (req: RequestTryCatch, res: Response, next: NextFunction) => {
@@ -14,5 +14,3 @@ function tryCatch(
     }
   };
 }
-
-export default tryCatch;
