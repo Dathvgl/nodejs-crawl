@@ -18,12 +18,7 @@ export default class MangaService {
         );
       case "nettruyen":
       default:
-        return new Nettruyen(
-          type,
-          strExist(envs.NETTRUYEN),
-          "axios",
-          "axios"
-        );
+        return new Nettruyen(type, strExist(envs.NETTRUYEN), "axios", "axios");
     }
   }
 
@@ -61,6 +56,11 @@ export default class MangaService {
 
         if (str.includes("ngày")) {
           const second = numFromStr(str) * 24 * 60 * 60;
+          return momentNowTS() - second;
+        }
+
+        if (str.includes("năm")) {
+          const second = numFromStr(str) * 365 * 24 * 60 * 60;
           return momentNowTS() - second;
         }
 
