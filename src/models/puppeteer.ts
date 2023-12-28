@@ -131,7 +131,6 @@ export default class Puppeteer {
     );
 
     const boundingBox = await item?.boundingBox();
-    console.log(boundingBox);
 
     if (boundingBox) {
       buffer = await page.screenshot({

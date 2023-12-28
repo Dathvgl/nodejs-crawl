@@ -19,6 +19,7 @@ import {
   MangaDetailFetch,
   MangaLink,
   MangaListClient,
+  MangaListClientAdmin,
   MangaOrder,
   MangaSort,
   MangaTagClient,
@@ -40,7 +41,8 @@ export default class MangaMongo {
     includes: string[],
     excludes: string[],
     limit?: string,
-    keyword?: string
+    keyword?: string,
+    admin?: boolean
   ) {
     const limitBase = parseInt(envs.LIMIT_LIST ?? "20");
     const limitList = parseInt(limit ?? limitBase.toString());
@@ -89,23 +91,22 @@ export default class MangaMongo {
       }
     };
 
-    const aggregate: any[] = [
-      {
-        $facet: {
-          data: [
-            { $match: { type } },
-            { $skip: (page - 1) * limitList },
-            { $limit: limitList },
-            { $project: { type: 0, href: 0, thumnail: 0, altTitle: 0 } },
-            {
-              $lookup: {
-                from: "mangaTag",
-                localField: "tags",
-                foreignField: "_id",
-                pipeline: [{ $project: { _id: 1, name: 1 } }],
-                as: "tags",
-              },
-            },
+    const dataHandle = () => {
+      const data: any[] = [
+        {
+          $lookup: {
+            from: "mangaTag",
+            localField: "tags",
+            foreignField: "_id",
+            pipeline: [{ $project: { _id: 1, name: 1 } }],
+            as: "tags",
+          },
+        },
+      ];
+
+      if (!admin) {
+        data.push(
+          ...[
             {
               $lookup: {
                 from: "mangaAuthor",
@@ -128,6 +129,32 @@ export default class MangaMongo {
                 as: "chapters",
               },
             },
+          ]
+        );
+      }
+
+      return data;
+    };
+
+    const aggregate: any[] = [
+      {
+        $facet: {
+          data: [
+            { $match: { type } },
+            { $skip: (page - 1) * limitList },
+            { $limit: limitList },
+            {
+              $project: admin
+                ? {
+                    type: 0,
+                    thumnail: 0,
+                    altTitle: 0,
+                    authors: 0,
+                    description: 0,
+                  }
+                : { type: 0, href: 0, thumnail: 0, altTitle: 0 },
+            },
+            ...dataHandle(),
             ...tagHandle(),
             ...sortHandle(),
           ],
@@ -169,7 +196,7 @@ export default class MangaMongo {
     if (keyword) aggregate.unshift({ $match: { $text: { $search: keyword } } });
 
     return await mangaDetailCollection
-      .aggregate<MangaListClient>(aggregate)
+      .aggregate<MangaListClient | MangaListClientAdmin>(aggregate)
       .next();
   }
 

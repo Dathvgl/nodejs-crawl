@@ -336,17 +336,27 @@ class MangaController {
   }
 
   async list(req: Request, res: Response) {
-    const { type, page, sort, order, limit, keyword, includes, excludes } =
-      req.query as {
-        type?: MangaType;
-        page?: number;
-        sort?: MangaSort;
-        order?: MangaOrder;
-        limit?: string;
-        keyword?: string;
-        includes?: string | string[];
-        excludes?: string | string[];
-      };
+    const {
+      type,
+      page,
+      sort,
+      order,
+      limit,
+      keyword,
+      includes,
+      excludes,
+      admin,
+    } = req.query as {
+      type?: MangaType;
+      page?: number;
+      sort?: MangaSort;
+      order?: MangaOrder;
+      limit?: string;
+      keyword?: string;
+      includes?: string | string[];
+      excludes?: string | string[];
+      admin?: string;
+    };
 
     const tagIncludes = includes
       ? typeof includes == "string"
@@ -374,7 +384,8 @@ class MangaController {
       tagIncludes,
       tagExcludes,
       limit,
-      keyword
+      keyword,
+      admin == "true" ? true : false
     );
 
     res.json(data);

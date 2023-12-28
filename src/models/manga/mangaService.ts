@@ -59,6 +59,11 @@ export default class MangaService {
           return momentNowTS() - second;
         }
 
+        if (str.includes("tháng")) {
+          const second = numFromStr(str) * 30 * 24 * 60 * 60;
+          return momentNowTS() - second;
+        }
+
         if (str.includes("năm")) {
           const second = numFromStr(str) * 365 * 24 * 60 * 60;
           return momentNowTS() - second;

@@ -56,21 +56,25 @@ export type MangaAuthorFetch = {
 
 export type MangaTagMongo = BaseMongo & MangaTagFetch;
 export type MangaAuthorMongo = BaseMongo & MangaAuthorFetch;
+
 export type MangaThumnailMongo = BaseMongo & {
   detailId: string;
   type: MangaType;
   src: string;
 };
+
 export type MangaDetailMongo = BaseMongo &
   Omit<MangaDetailFetch, "tags" | "authors" | "chapters"> & {
     lastestUpdated: number;
   };
+
 export type MangaDetailChapterMongo = BaseMongo &
   Omit<MangaDetailChapterFetch, "href" | "title"> & {
     detailId: string;
     type: MangaType;
     chapter: number;
   };
+
 export type MangaDetailChapterImageMongo = BaseMongo & {
   chapterId: string;
   chapterIndex: number;
@@ -82,14 +86,17 @@ export type MangaTagClient = Omit<
   MangaTagMongo,
   "href" | "type" | "createdAt" | "updatedAt"
 >;
+
 export type MangaAuthorClient = Omit<
   MangaAuthorMongo,
   "href" | "type" | "createdAt" | "updatedAt"
 >;
+
 export type MangaThumnailClient = Omit<
   MangaThumnailMongo,
   "type" | "createdAt" | "updatedAt"
 >;
+
 export type MangaDetailClient = Omit<
   MangaDetailMongo,
   "href" | "type" | "thumnail" | "createdAt" | "updatedAt"
@@ -97,19 +104,29 @@ export type MangaDetailClient = Omit<
   authors: MangaLinkClient[];
   tags: (MangaLinkClient & { description: string })[];
 };
+
 export type MangaDetailChapterClient = Omit<
   MangaDetailChapterMongo,
   "type" | "createdAt" | "updatedAt"
 >;
+
 export type MangaDetailChapterImageClient = Omit<
   MangaDetailChapterImageMongo,
   "type" | "createdAt" | "updatedAt"
 >;
+
 export type MangaListClient = ListResult<
   Omit<MangaDetailClient, "altTitle"> & {
     chapters: { _id: string; chapter: number; time: number }[];
   }
 >;
+
+export type MangaListClientAdmin = ListResult<
+  Omit<MangaDetailClient, "altTitle" | "description" | "authors"> & {
+    href: string;
+  }
+>;
+
 export type MangaChapterClient = {
   canPrev: MangaIndex | null;
   canNext: MangaIndex | null;

@@ -79,12 +79,17 @@ export default class Nettruyen extends MangaFactory {
       }
     };
 
-    const thumnailSrc = (src?: string) => {
-      switch (this.type) {
-        case "nettruyen":
-          return `https:${strExist(src)}`;
-        default:
-          return strExist(src);
+    const thumnailSrc = (src: string = "") => {
+      try {
+        new URL(src);
+        return src;
+      } catch (error) {
+        switch (this.type) {
+          case "nettruyen":
+            return `https:${src}`;
+          default:
+            return src;
+        }
       }
     };
 
