@@ -2,7 +2,7 @@ import { envs } from "index";
 import { ObjectId } from "mongodb";
 import { MangaOrder, MangaSort, MangaType } from "types/manga";
 import { momentNowTS } from "utils/date";
-import { userFollowManga } from "./mongo";
+import { userFollowMangaCollection } from "./mongo";
 
 export default class UserMongo {
   async followMangaList(
@@ -31,7 +31,7 @@ export default class UserMongo {
       }
     };
 
-    await userFollowManga
+    await userFollowMangaCollection
       .aggregate([
         { $match: { userId: uid, type } },
         {
@@ -106,7 +106,7 @@ export default class UserMongo {
   }
 
   async getFollowManga(userId: string, mangaId: string, type: MangaType) {
-    return await userFollowManga.findOne<{
+    return await userFollowMangaCollection.findOne<{
       _id: string;
       currentChapterId: string;
       lastestChapterId: string;
@@ -134,7 +134,7 @@ export default class UserMongo {
     type: MangaType,
     chapter: string
   ) {
-    await userFollowManga.insertOne({
+    await userFollowMangaCollection.insertOne({
       userId,
       mangaId: new ObjectId(mangaId),
       type,
@@ -159,14 +159,14 @@ export default class UserMongo {
 
     if (replace) updates.lastestChapterId = new ObjectId(currentChapter);
 
-    await userFollowManga.updateOne(
+    await userFollowMangaCollection.updateOne(
       { mangaId: new ObjectId(id), userId, type },
       { $set: updates }
     );
   }
 
   async deleteFollowManga(id: string, userId: string, type: MangaType) {
-    await userFollowManga.deleteOne({
+    await userFollowMangaCollection.deleteOne({
       mangaId: new ObjectId(id),
       userId,
       type,
