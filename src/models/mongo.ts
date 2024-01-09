@@ -1,41 +1,131 @@
 import { envs } from "index";
 import { MongoClient } from "mongodb";
-import { MongoTransaction } from "types/mongo";
-import { CustomError } from "./errror";
 
 const mongoClient = new MongoClient(envs.MONGO_URL ?? "");
 mongoClient.connect().then(() => console.log("MongoDB connect"));
 export const mongoDB = mongoClient.db(envs.MONGO_DB);
 
-export const transaction = async (
-  callback: (opts: MongoTransaction) => Promise<void>
-) => {
-  const session = mongoClient.startSession();
-  session.startTransaction({});
+// -----
 
-  try {
-    await callback({ session, returnOriginal: false });
-    console.log("donwwwwwwwwwwwwwwwwwwwww");
+// User
+export const userCollection = mongoDB.collection("user");
+export const userFollowMangaCollection = mongoDB.collection("userFollowManga");
 
-    await session.commitTransaction();
-    session.endSession();
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error(error);
-    throw new CustomError("Error transaction", 500);
-  }
-};
+// Role
+export const roleCollection = mongoDB.collection("role");
+export const roleTypeCollection = mongoDB.collection("roleType");
 
+// Manga
 export const mangaTagCollection = mongoDB.collection("mangaTag");
 export const mangaAuthorCollection = mongoDB.collection("mangaAuthor");
-export const mangaThumnailCollection = mongoDB.collection("mangaThumnail");
+
 export const mangaDetailCollection = mongoDB.collection("mangaDetail");
+export const mangaThumnailCollection = mongoDB.collection("mangaThumnail");
 
 export const mangaDetailChapterCollection =
   mongoDB.collection("mangaDetailChapter");
+
 export const mangaDetailChapterImageCollection = mongoDB.collection(
   "mangaDetailChapterImage"
 );
 
-export const userFollowManga = mongoDB.collection("userFollowManga");
+// -----
+
+type FieldLookup = {
+  document: string;
+  as?: string;
+  field: string;
+  project?: { $project: Record<string, any> };
+};
+
+export function fieldLookup({ document, as, field, project }: FieldLookup) {
+  const pipeline: any[] = [];
+
+  if (project) pipeline.push(project);
+
+  return [
+    {
+      $lookup: {
+        from: document,
+        localField: field,
+        foreignField: "_id",
+        pipeline,
+        as: as ?? document,
+      },
+    },
+    { $addFields: { [as ?? document]: { $first: `$${as ?? document}` } } },
+  ];
+}
+
+type AggregateListProps = {
+  dataHandle?: any[];
+  facetBefore?: any[];
+  facetAfter?: any[];
+  listHandle: {
+    page: number;
+    limit: number;
+  };
+};
+
+export function aggregateList({
+  listHandle,
+  dataHandle,
+  facetBefore,
+  facetAfter,
+}: AggregateListProps) {
+  const { page, limit } = listHandle;
+
+  const data: any[] = [{ $skip: (page - 1) * limit }, { $limit: limit }];
+
+  if (dataHandle && dataHandle?.length != 0) {
+    data.unshift(...dataHandle);
+  }
+
+  const aggregate: any[] = [
+    {
+      $facet: {
+        data,
+        total: [{ $count: "total" }],
+      },
+    },
+    { $addFields: { currentPage: page } },
+    {
+      $project: {
+        totalData: {
+          $let: {
+            vars: { props: { $first: "$total" } },
+            in: "$$props.total",
+          },
+        },
+        currentPage: 1,
+        canPrev: { $not: { $eq: ["$currentPage", 1] } },
+        data: 1,
+      },
+    },
+    {
+      $addFields: {
+        totalPage: { $ceil: { $divide: ["$totalData", limit] } },
+      },
+    },
+    {
+      $addFields: {
+        canNext: {
+          $and: [
+            { $not: { $eq: ["$currentPage", "$totalPage"] } },
+            { $not: { $eq: [null, "$totalPage"] } },
+          ],
+        },
+      },
+    },
+  ];
+
+  if (facetBefore && facetBefore?.length != 0) {
+    aggregate.unshift(...facetBefore);
+  }
+
+  if (facetAfter && facetAfter?.length != 0) {
+    aggregate.push(...facetAfter);
+  }
+
+  return aggregate;
+}
