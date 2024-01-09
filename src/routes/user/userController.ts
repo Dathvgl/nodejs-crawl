@@ -7,12 +7,15 @@ import { ObjectId } from "mongodb";
 import { RequestAuthHandler } from "types/base";
 import { MangaOrder, MangaSort, MangaType } from "types/manga";
 import { mangaTypes } from "types/variable";
-import { strExist } from "utils/check";
+import { strEmpty } from "utils/check";
 
 const userExist = (str?: string) => {
-  if (str) return str;
-  else new CustomError("Invalid user", 500);
-  return "";
+  if (str) {
+    return str;
+  } else {
+    new CustomError("Invalid user", 500);
+    return "";
+  }
 };
 
 const mangaTypeExist = (type?: string) => {
@@ -22,6 +25,8 @@ const mangaTypeExist = (type?: string) => {
 };
 
 export default class UserController {
+  async getUser(req: RequestAuthHandler, res: Response) {}
+
   async followMangaList(req: RequestAuthHandler, res: Response) {
     const { type, page, sort, order } = req.query as {
       type?: MangaType;
@@ -68,7 +73,7 @@ export default class UserController {
 
     const uid = userExist(req.uid);
     const mangaType = mangaTypeExist(type);
-    const mangaChapter = strExist(chapter);
+    const mangaChapter = strEmpty(chapter);
 
     const userMongo = new UserMongo();
     const mangaMongo = new MangaMongo();
@@ -79,6 +84,7 @@ export default class UserController {
       mangaType,
       mangaChapter
     );
+
     await mangaMongo.putDetailFollow(new ObjectId(id), mangaType, 1);
 
     res.json(data);
@@ -94,7 +100,7 @@ export default class UserController {
 
     const uid = userExist(req.uid);
     const mangaType = mangaTypeExist(type);
-    const mangaCurrentChapter = strExist(currentChapter);
+    const mangaCurrentChapter = strEmpty(currentChapter);
 
     if (replace == undefined) {
       throw new CustomError("Invalid change follow manga", 500);

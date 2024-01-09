@@ -2,7 +2,7 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import Puppeteer from "models/puppeteer";
 import { MangaType } from "types/manga";
-import { strExist } from "utils/check";
+import { strEmpty } from "utils/check";
 import manga from "./mangaJson.json";
 
 type FetchType = "puppeteer" | "axios";
@@ -51,7 +51,7 @@ export default class MangaFactory {
           const item = array[index];
 
           try {
-            const src = strExist($(item).attr("src"));
+            const src = strEmpty($(item).attr("src"));
             const buffer = (
               await axios.get(src, { responseType: "arraybuffer" })
             ).data;

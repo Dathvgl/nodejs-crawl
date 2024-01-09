@@ -1,10 +1,10 @@
 import { envs } from "index";
 import moment from "moment";
 import { MangaType } from "types/manga";
-import { numFromStr, strExist } from "utils/check";
+import { numStrTime, strEmpty } from "utils/check";
 import { momentNowTS } from "utils/date";
-import Nettruyen from "./type/nettruyen";
 import Blogtruyen from "./type/blogtruyen";
+import Nettruyen from "./type/nettruyen";
 
 export default class MangaService {
   static init(type: MangaType) {
@@ -12,13 +12,13 @@ export default class MangaService {
       case "blogtruyen":
         return new Blogtruyen(
           type,
-          strExist(envs.BLOGTRUYEN),
+          strEmpty(envs.BLOGTRUYEN),
           "axios",
           "axios"
         );
       case "nettruyen":
       default:
-        return new Nettruyen(type, strExist(envs.NETTRUYEN), "axios", "axios");
+        return new Nettruyen(type, strEmpty(envs.NETTRUYEN), "axios", "axios");
     }
   }
 
@@ -40,32 +40,32 @@ export default class MangaService {
       case "nettruyen":
       default: {
         if (str.includes("giây")) {
-          const second = numFromStr(str);
+          const second = numStrTime(str);
           return momentNowTS() - second;
         }
 
         if (str.includes("phút")) {
-          const second = numFromStr(str) * 60;
+          const second = numStrTime(str) * 60;
           return momentNowTS() - second;
         }
 
         if (str.includes("giờ")) {
-          const second = numFromStr(str) * 60 * 60;
+          const second = numStrTime(str) * 60 * 60;
           return momentNowTS() - second;
         }
 
         if (str.includes("ngày")) {
-          const second = numFromStr(str) * 24 * 60 * 60;
+          const second = numStrTime(str) * 24 * 60 * 60;
           return momentNowTS() - second;
         }
 
         if (str.includes("tháng")) {
-          const second = numFromStr(str) * 30 * 24 * 60 * 60;
+          const second = numStrTime(str) * 30 * 24 * 60 * 60;
           return momentNowTS() - second;
         }
 
         if (str.includes("năm")) {
-          const second = numFromStr(str) * 365 * 24 * 60 * 60;
+          const second = numStrTime(str) * 365 * 24 * 60 * 60;
           return momentNowTS() - second;
         }
 

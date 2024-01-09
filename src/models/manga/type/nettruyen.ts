@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import { MangaDetailFetch, MangaListFetch, MangaTagFetch } from "types/manga";
-import { strEmpty, strExist } from "utils/check";
+import { strUndefined, strEmpty } from "utils/check";
 import MangaFactory from "../mangaFactory";
 import manga from "../mangaJson.json";
 import MangaService from "../mangaService";
@@ -27,7 +27,7 @@ export default class Nettruyen extends MangaFactory {
     const tags = tagMain
       .find("a")
       .map((_, item) => ({
-        href: new URL(strExist($(item).attr("href"))).pathname,
+        href: new URL(strEmpty($(item).attr("href"))).pathname,
         name: $(item).text(),
       }))
       .get()
@@ -96,7 +96,7 @@ export default class Nettruyen extends MangaFactory {
     const tags = detailMain
       .find(detailJson["tags"])
       .map((_, item) => ({
-        href: new URL(strExist($(item).attr("href"))).pathname,
+        href: new URL(strEmpty($(item).attr("href"))).pathname,
         name: $(item).text(),
       }))
       .get();
@@ -108,7 +108,7 @@ export default class Nettruyen extends MangaFactory {
         detailMain.find(detailJson["thumnail"]).attr("src")
       ),
       title: detailMain.find(detailJson["title"]).text(),
-      altTitle: strEmpty(detailMain.find(detailJson["altTitle"]).text()),
+      altTitle: strUndefined(detailMain.find(detailJson["altTitle"]).text()),
       authors:
         authorListLength == 0
           ? [{ href: "", name: $(detailJson["author"]).text() }]
@@ -138,7 +138,7 @@ export default class Nettruyen extends MangaFactory {
       chapters: $(chapterMain)
         .map((_, item) => ({
           href: new URL(
-            strExist($(item).find(chapterJson["title"]).attr("href"))
+            strEmpty($(item).find(chapterJson["title"]).attr("href"))
           ).pathname,
           title: $(item).find(chapterJson["title"]).text(),
           time: MangaService.timestamp(
@@ -169,7 +169,7 @@ export default class Nettruyen extends MangaFactory {
     return {
       totalData: itemMain.length,
       totalPage: parseInt(
-        strExist(pageMain.find(pageJson["total"]).attr("href")).split(
+        strEmpty(pageMain.find(pageJson["total"]).attr("href")).split(
           "page="
         )[1]
       ),
@@ -182,15 +182,15 @@ export default class Nettruyen extends MangaFactory {
           const linkMain = $(item).find(linkJson["main"]);
 
           return {
-            href: strExist(anchor.attr("href")),
-            title: strExist(anchor.text()),
-            thumnail: strExist($(item).find(itemJson["thumnail"]).attr("src")),
+            href: strEmpty(anchor.attr("href")),
+            title: strEmpty(anchor.text()),
+            thumnail: strEmpty($(item).find(itemJson["thumnail"]).attr("src")),
             chapters: linkMain
               .map((_, item) => {
                 const anchor = $(item).find(linkJson["chapter"]);
                 return {
-                  href: strExist(anchor.attr("href")),
-                  title: strExist(anchor.text()),
+                  href: strEmpty(anchor.attr("href")),
+                  title: strEmpty(anchor.text()),
                   time: MangaService.timestamp(
                     this.type,
                     $(item).find(linkJson["time"]).text()

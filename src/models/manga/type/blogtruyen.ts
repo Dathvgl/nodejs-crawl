@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import { MangaDetailFetch, MangaListFetch, MangaTagFetch } from "types/manga";
-import { strEmpty, strExist } from "utils/check";
+import { strUndefined, strEmpty } from "utils/check";
 import MangaFactory from "../mangaFactory";
 import manga from "../mangaJson.json";
 import MangaService from "../mangaService";
@@ -27,7 +27,7 @@ export default class Blogtruyen extends MangaFactory {
     const tags = tagMain
       .find("a")
       .map((_, item) => ({
-        href: strExist($(item).attr("href")),
+        href: strEmpty($(item).attr("href")),
         name: $(item).text(),
       }))
       .get()
@@ -68,7 +68,7 @@ export default class Blogtruyen extends MangaFactory {
     const tags = detailMain
       .find(detailJson["tags"])
       .map((_, item) => ({
-        href: strExist($(item).attr("href")),
+        href: strEmpty($(item).attr("href")),
         name: $(item).text(),
       }))
       .get();
@@ -76,7 +76,7 @@ export default class Blogtruyen extends MangaFactory {
     return {
       type: this.type,
       href,
-      thumnail: strExist(detailMain.find(detailJson["thumnail"]).attr("src")),
+      thumnail: strEmpty(detailMain.find(detailJson["thumnail"]).attr("src")),
       title: detailMain
         .find(detailJson["title"])
         .contents()
@@ -88,7 +88,7 @@ export default class Blogtruyen extends MangaFactory {
         .join("")
         .replace(">", "")
         .trim(),
-      altTitle: strEmpty(detailMain.find(detailJson["altTitle"]).text()),
+      altTitle: strUndefined(detailMain.find(detailJson["altTitle"]).text()),
       authors: $(detailJson["author"])
         .map((_, item) => ({
           href: $(item).attr("href") ?? "",
@@ -106,7 +106,7 @@ export default class Blogtruyen extends MangaFactory {
         .trim(),
       chapters: $(chapterMain)
         .map((_, item) => ({
-          href: strExist($(item).find(chapterJson["title"]).attr("href")),
+          href: strEmpty($(item).find(chapterJson["title"]).attr("href")),
           title: $(item).find(chapterJson["title"]).text().trim(),
           time: MangaService.timestamp(
             this.type,
@@ -137,7 +137,7 @@ export default class Blogtruyen extends MangaFactory {
       totalPage:
         pageMain.find(pageJson["total"]).length == 0
           ? parseInt(
-              strExist(
+              strEmpty(
                 pageMain
                   .find("select > option:last-child")
                   .attr("value")
@@ -145,7 +145,7 @@ export default class Blogtruyen extends MangaFactory {
               )
             )
           : parseInt(
-              strExist(pageMain.find(pageJson["total"]).attr("href")).split(
+              strEmpty(pageMain.find(pageJson["total"]).attr("href")).split(
                 "page-"
               )[1]
             ),
@@ -157,9 +157,9 @@ export default class Blogtruyen extends MangaFactory {
           const anchor = $(item).find(itemJson["href"]);
 
           return {
-            href: strExist(anchor.attr("href")),
-            title: strExist(anchor.text()),
-            thumnail: strExist($(item).find(itemJson["thumnail"]).attr("src")),
+            href: strEmpty(anchor.attr("href")),
+            title: strEmpty(anchor.text()),
+            thumnail: strEmpty($(item).find(itemJson["thumnail"]).attr("src")),
             chapters: [],
           };
         })

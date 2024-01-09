@@ -1,50 +1,60 @@
-export function strExist(str: string | null | undefined) {
-  return str ? str : "";
+export function strBase<T>(str?: string | null | undefined, base?: string): T {
+  return (str ? str : base) as T;
 }
 
 export function strEmpty(str: string | null | undefined) {
-  return str ? str : undefined;
+  return strBase<string>(str, "");
 }
 
-export function strBase64(buffer?: Buffer, range: number = 100) {
-  const array: string[] = [];
-  if (!buffer) return array;
-
-  const base64 = `data:image/png;base64,${Buffer.from(buffer).toString(
-    "base64"
-  )}`;
-
-  const length = Math.ceil(base64.length / range);
-  const regex = new RegExp(`.{1,${length}}`, "g");
-
-  const split = base64.match(regex);
-  split?.forEach((item) => {
-    array.push(item);
-  });
-
-  return array;
+export function strUndefined(str: string | null | undefined) {
+  return strBase<undefined>(str, undefined);
 }
 
-export function numExist(num: number | null | undefined) {
-  return num ? num : 0;
+export function numBase(
+  value?: number | string | null,
+  parse?: {
+    default?: number;
+    regex?: RegExp;
+    type?: "int" | "float";
+  }
+) {
+  const base = parse?.default ?? 0;
+
+  switch (typeof value) {
+    case "string": {
+      try {
+        if (!parse) {
+          return parseInt(value);
+        } else {
+          if (!parse.regex) {
+            if (parse.type == "float") {
+              return parseInt(value);
+            } else {
+              return parseFloat(value);
+            }
+          }
+
+          if (parse.type == "float") {
+            return parseInt(value.match(parse.regex)?.[0] ?? `${base}`);
+          } else {
+            return parseFloat(value.match(parse.regex)?.[0] ?? `${base}`);
+          }
+        }
+      } catch (error) {
+        return base;
+      }
+    }
+    case "number":
+      return value;
+    default:
+      return base;
+  }
 }
 
-export function numStrExist(num: string | undefined) {
-  return num ? Number.parseFloat(num) : 0;
-}
-
-export function numFromStr(str?: string) {
-  if (!str) return 0;
-  return parseInt(str.match(/\d+(?:\.?\d+)?/g)?.[0] ?? "0");
-}
-
-export function numNegative(str?: string) {
-  if (!str) return 0;
-  return parseInt(str.match(/\d+(?:\.?\d+)?/g)?.[0] ?? "-1");
+export function numStrTime(str?: string) {
+  return numBase(str, { type: "int", regex: /\d+(?:\.?\d+)?/g });
 }
 
 export function numThousand(str?: string) {
-  if (!str) return 0;
-  const num = parseInt(str.replaceAll(".", ""));
-  return isNaN(num) ? 0 : num;
+  return numBase(str?.replaceAll(".", ""));
 }
