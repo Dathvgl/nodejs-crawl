@@ -6,7 +6,7 @@ export type KeysOfType<T, K> = {
 
 export type ListResult<T> = {
   totalData: number;
-  totalPage: number | null;
+  totalPage: number;
   currentPage: number;
   canPrev: boolean;
   canNext: boolean;

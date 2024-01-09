@@ -5,8 +5,3 @@ export type BaseMongo = {
   createdAt: number;
   updatedAt: number;
 };
-
-export type MongoTransaction = {
-  session: ClientSession;
-  returnOriginal: boolean;
-};
