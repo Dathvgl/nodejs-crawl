@@ -1,5 +1,6 @@
 import { envs } from "index";
 import {
+  aggregateList,
   mangaAuthorCollection,
   mangaDetailChapterCollection,
   mangaDetailChapterImageCollection,
@@ -136,64 +137,32 @@ export default class MangaMongo {
       return data;
     };
 
-    const aggregate: any[] = [
+    const facetBefore: any[] = [
+      { $match: { type } },
       {
-        $facet: {
-          data: [
-            { $match: { type } },
-            { $skip: (page - 1) * limitList },
-            { $limit: limitList },
-            {
-              $project: admin
-                ? {
-                    type: 0,
-                    thumnail: 0,
-                    altTitle: 0,
-                    authors: 0,
-                    description: 0,
-                  }
-                : { type: 0, href: 0, thumnail: 0, altTitle: 0 },
-            },
-            ...dataHandle(),
-            ...tagHandle(),
-            ...sortHandle(),
-          ],
-          totalPage: [{ $count: "total" }],
-        },
+        $project: admin
+          ? {
+              type: 0,
+              thumnail: 0,
+              altTitle: 0,
+              authors: 0,
+              description: 0,
+            }
+          : { type: 0, href: 0, thumnail: 0, altTitle: 0 },
       },
-      { $addFields: { currentPage: page } },
-      {
-        $project: {
-          totalData: { $size: "$data" },
-          totalPage: {
-            $let: {
-              vars: { props: { $first: "$totalPage" } },
-              in: "$$props.total",
-            },
-          },
-          currentPage: 1,
-          canPrev: { $not: { $eq: ["$currentPage", 1] } },
-          data: 1,
-        },
-      },
-      {
-        $addFields: {
-          totalPage: { $ceil: { $divide: ["$totalPage", limitList] } },
-        },
-      },
-      {
-        $addFields: {
-          canNext: {
-            $and: [
-              { $not: { $eq: ["$currentPage", "$totalPage"] } },
-              { $not: { $eq: [null, "$totalPage"] } },
-            ],
-          },
-        },
-      },
+      ...dataHandle(),
+      ...tagHandle(),
+      ...sortHandle(),
     ];
 
-    if (keyword) aggregate.unshift({ $match: { $text: { $search: keyword } } });
+    if (keyword) {
+      facetBefore.unshift({ $match: { $text: { $search: keyword } } });
+    }
+
+    const aggregate = aggregateList({
+      listHandle: { page, limit: limitList },
+      facetBefore,
+    });
 
     return await mangaDetailCollection
       .aggregate<MangaListClient | MangaListClientAdmin>(aggregate)
