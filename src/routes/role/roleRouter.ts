@@ -8,8 +8,10 @@ const roleController = new RoleController();
 // Role
 roleRouter
   .route("/")
-  .get(tryCatch(roleController.getRole))
+  .get(tryCatch(roleController.getRoles))
   .post(tryCatch(roleController.postRole));
+
+roleRouter.get("/all", tryCatch(roleController.getRoleAll));
 
 roleRouter
   .route("/:id")
@@ -19,8 +21,10 @@ roleRouter
 // Role type
 roleRouter
   .route("/type")
-  .get(tryCatch(roleController.getRoleType))
+  .get(tryCatch(roleController.getRoleTypes))
   .post(tryCatch(roleController.postRoleType));
+
+roleRouter.get("/type/all", tryCatch(roleController.getRoleTypeAll));
 
 roleRouter
   .route("/type/:id")
