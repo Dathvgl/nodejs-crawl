@@ -1,6 +1,7 @@
 import { Router } from "express";
 import tryCatch from "utils/tryCatch";
 import MangaController from "./mangaController";
+import { authFirebaseHandler } from "middlewares/authHandler";
 
 const mangaRouter = Router();
 const mangaController = new MangaController();
@@ -19,7 +20,6 @@ mangaRouter.get(
 
 // Get cover of manga
 mangaRouter.get("/thumnail/:id", tryCatch(mangaController.thumnail));
-mangaRouter.get("/detailCrawl", tryCatch(mangaController.detailCrawl));
 
 mangaRouter
   .route("/detail/:id")
@@ -33,7 +33,19 @@ mangaRouter
   .put(tryCatch(mangaController.putDetailChapter))
   .delete(tryCatch(mangaController.deleteDetailChapter));
 
-mangaRouter.get("/lastestCrawl", tryCatch(mangaController.lastestCrawl));
 mangaRouter.get("/list", tryCatch(mangaController.list));
+
+// Crawl
+mangaRouter.post(
+  "/detailCrawl",
+  authFirebaseHandler,
+  tryCatch(mangaController.detailCrawl)
+);
+
+mangaRouter.post(
+  "/lastestCrawl",
+  authFirebaseHandler,
+  tryCatch(mangaController.lastestCrawl)
+);
 
 export default mangaRouter;

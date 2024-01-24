@@ -89,7 +89,7 @@ class MangaController {
   }
 
   async detailCrawl(req: Request, res: Response) {
-    const { href, type, limit } = req.query as {
+    const { href, type, limit } = req.body as {
       href?: string;
       type?: string;
       limit?: string;
@@ -243,7 +243,7 @@ class MangaController {
   }
 
   async lastestCrawl(req: Request, res: Response) {
-    const { type, page, limit } = req.query as {
+    const { type, page, limit } = req.body as {
       type?: MangaType;
       page?: number;
       limit?: string;
