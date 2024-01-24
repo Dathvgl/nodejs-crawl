@@ -3,6 +3,7 @@ config();
 
 export const envs = process.env;
 
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application } from "express";
 import { createServer } from "http";
@@ -25,6 +26,7 @@ app.use(
 
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
+app.use(cookieParser());
 
 app.use("/api", ApiRoute);
 
