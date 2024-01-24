@@ -36,14 +36,21 @@ type FieldLookup = {
   as?: string;
   field: string;
   project?: { $project: Record<string, any> };
+  array?: boolean;
 };
 
-export function fieldLookup({ document, as, field, project }: FieldLookup) {
+export function fieldLookup({
+  document,
+  as,
+  field,
+  project,
+  array,
+}: FieldLookup) {
   const pipeline: any[] = [];
 
   if (project) pipeline.push(project);
 
-  return [
+  const aggregate = [
     {
       $lookup: {
         from: document,
@@ -55,6 +62,9 @@ export function fieldLookup({ document, as, field, project }: FieldLookup) {
     },
     { $addFields: { [as ?? document]: { $first: `$${as ?? document}` } } },
   ];
+
+  if (array) aggregate.pop();
+  return aggregate;
 }
 
 type AggregateListProps = {
