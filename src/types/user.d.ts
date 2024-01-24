@@ -1,6 +1,18 @@
 import { ListResult } from "./base";
 import { MangaType } from "./manga";
 import { BaseMongo } from "./mongo";
+import { RoleMongo } from "./role";
+
+export type UserType = {
+  _id: string;
+  uid: string;
+  name?: string;
+  email?: string;
+  thumnail?: string;
+  gender?: string;
+  birth?: number;
+  roles: Pick<RoleMongo, "_id" | "name">[];
+};
 
 export type UserFollowMangaMongo = BaseMongo & {
   userId: string;
