@@ -1,5 +1,6 @@
 import { NextFunction, Response } from "express";
 import { FirebaseError } from "firebase-admin";
+import { CustomError } from "models/errror";
 import { auths } from "models/firebase/firebaseService";
 import { RequestAuthHandler } from "types/base";
 
@@ -8,20 +9,18 @@ export async function authFirebaseHandler(
   res: Response,
   next: NextFunction
 ) {
-  const authHeader = req.headers.authorization;
+  const session = req.cookies["crawl-auth"] ?? "";
 
-  if (!authHeader) {
-    res.status(401).send("Invalid credentials");
+  if (session == "") {
+    res.status(404).json({ message: "Không xác thực" });
   } else {
-    const token = authHeader.replace("Bearer ", "");
-
     let pass = false;
     const length = auths.length;
 
     for (let index = 0; index < length; index++) {
       const auth = auths[index];
       try {
-        const decodedToken = await auth.verifyIdToken(token);
+        const decodedToken = await auth.verifySessionCookie(session, true);
 
         pass = true;
         req.uid = decodedToken.uid;
@@ -33,6 +32,6 @@ export async function authFirebaseHandler(
     }
 
     if (pass) next();
-    else res.status(401).send("Invalid credentials");
+    else res.status(404).json({ message: "Không xác thực" });
   }
 }

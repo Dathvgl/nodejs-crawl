@@ -11,8 +11,8 @@ export default function errorHandler(
   console.log(error);
 
   if (error instanceof AxiosError) {
-    res.status(error.response?.status ?? 400).send(error.message);
+    res.status(error.response?.status ?? 400).json({ message: error.message });
   } else if (error instanceof CustomError) {
-    res.status(error.statusCode).send(error.message);
-  } else res.status(400).send(error);
+    res.status(error.statusCode).json({ message: error.message });
+  } else res.status(400).json({ message: error });
 }
