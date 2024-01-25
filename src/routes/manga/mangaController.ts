@@ -195,7 +195,7 @@ class MangaController {
     const mangaMongo = new MangaMongo();
     const data = await mangaMongo.getDetailFollow(new ObjectId(id), mangaType);
 
-    res.send(data);
+    res.json(data);
   }
 
   async deleteDetail(req: Request, res: Response) {

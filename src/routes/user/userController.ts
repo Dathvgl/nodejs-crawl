@@ -150,9 +150,9 @@ export default class UserController {
         secure: true,
       });
 
-      res.status(200).send("Xác thực");
+      res.status(200).json({ message: "Xác thực" });
     } catch (error) {
-      res.status(401).send("Không xác thực");
+      res.status(401).json({ message: "Không xác thực" });
     }
   }
 
@@ -163,9 +163,9 @@ export default class UserController {
     try {
       const decodedClaims = await auths[0].verifySessionCookie(session);
       await auths[0].revokeRefreshTokens(decodedClaims.sub);
-      res.status(200).send("Xóa xác thực");
+      res.status(200).json({ message: "Xóa xác thực" });
     } catch (error) {
-      res.status(401).send("Không xóa xác thực");
+      res.status(401).json({ message: "Không xóa xác thực" });
     }
   }
 
@@ -233,7 +233,7 @@ export default class UserController {
       mangaCurrentChapter
     );
 
-    res.send("User follow manga chapter");
+    res.json({ message: "User follow manga chapter" });
   }
 
   async deletefollowManga(req: RequestAuthHandler, res: Response) {
