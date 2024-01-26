@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authFirebaseHandler } from "middlewares/authHandler";
 import tryCatch from "utils/tryCatch";
 import RoleController from "./roleController";
 
@@ -8,27 +9,31 @@ const roleController = new RoleController();
 // Role
 roleRouter
   .route("/")
-  .get(tryCatch(roleController.getRoles))
-  .post(tryCatch(roleController.postRole));
+  .get(authFirebaseHandler, tryCatch(roleController.getRoles))
+  .post(authFirebaseHandler, tryCatch(roleController.postRole));
 
 roleRouter.get("/all", tryCatch(roleController.getRoleAll));
 
 roleRouter
   .route("/:id")
-  .put(tryCatch(roleController.putRole))
-  .delete(tryCatch(roleController.deleteRole));
+  .put(authFirebaseHandler, tryCatch(roleController.putRole))
+  .delete(authFirebaseHandler, tryCatch(roleController.deleteRole));
 
 // Role type
 roleRouter
   .route("/type")
-  .get(tryCatch(roleController.getRoleTypes))
-  .post(tryCatch(roleController.postRoleType));
+  .get(authFirebaseHandler, tryCatch(roleController.getRoleTypes))
+  .post(authFirebaseHandler, tryCatch(roleController.postRoleType));
 
-roleRouter.get("/type/all", tryCatch(roleController.getRoleTypeAll));
+roleRouter.get(
+  "/type/all",
+  authFirebaseHandler,
+  tryCatch(roleController.getRoleTypeAll)
+);
 
 roleRouter
   .route("/type/:id")
-  .put(tryCatch(roleController.putRoleType))
-  .delete(tryCatch(roleController.deleteRoleType));
+  .put(authFirebaseHandler, tryCatch(roleController.putRoleType))
+  .delete(authFirebaseHandler, tryCatch(roleController.deleteRoleType));
 
 export default roleRouter;

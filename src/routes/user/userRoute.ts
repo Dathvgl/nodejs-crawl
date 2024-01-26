@@ -6,13 +6,14 @@ import { authFirebaseHandler } from "middlewares/authHandler";
 const userRouter = Router();
 const userController = new UserController();
 
-userRouter.get("/", tryCatch(userController.getUsers));
+userRouter.get("/", authFirebaseHandler, tryCatch(userController.getUsers));
 
 userRouter.get("/once", authFirebaseHandler, tryCatch(userController.getUser));
 
 userRouter.post("/session-signin", tryCatch(userController.postSessionSignIn));
 userRouter.post(
   "/session-signout",
+  authFirebaseHandler,
   tryCatch(userController.postSessionSignOut)
 );
 
