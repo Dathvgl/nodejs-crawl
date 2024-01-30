@@ -1,7 +1,8 @@
 import { Router } from "express";
+import { authFirebaseHandler } from "middlewares/authHandler";
+import multer from "multer";
 import tryCatch from "utils/tryCatch";
 import MangaController from "./mangaController";
-import { authFirebaseHandler } from "middlewares/authHandler";
 
 const mangaRouter = Router();
 const mangaController = new MangaController();
@@ -13,10 +14,14 @@ mangaRouter.get("/tag", tryCatch(mangaController.tag));
 mangaRouter.get("/chapter/:id", tryCatch(mangaController.chapter));
 
 // Get list image in chapter of manga
-mangaRouter.get(
-  "/chapter/:detailId/:chapterId",
-  tryCatch(mangaController.chapterImage)
-);
+mangaRouter
+  .route("/chapter/:detailId/:chapterId")
+  .get(tryCatch(mangaController.getChapterImage))
+  .put(
+    authFirebaseHandler,
+    multer().array("files"),
+    tryCatch(mangaController.putChapterImage)
+  );
 
 // Get cover of manga
 mangaRouter.get("/thumnail/:id", tryCatch(mangaController.thumnail));
@@ -24,6 +29,11 @@ mangaRouter.get("/thumnail/:id", tryCatch(mangaController.thumnail));
 mangaRouter
   .route("/detail/:id")
   .get(tryCatch(mangaController.getDetail))
+  .put(
+    authFirebaseHandler,
+    multer().single("file"),
+    tryCatch(mangaController.putDetail)
+  )
   .delete(tryCatch(mangaController.deleteDetail));
 
 mangaRouter.get("/detailFollow/:id", tryCatch(mangaController.getDetailFollow));

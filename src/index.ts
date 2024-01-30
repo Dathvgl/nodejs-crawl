@@ -24,8 +24,16 @@ app.use(
   })
 );
 
+// For parsing application/json
 app.use(express.json({ limit: "50mb" }));
+
+// For parsing application/x-www-form-urlencoded
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+// For parsing multipart/form-data
+app.use(express.static("public"));
+
+// For parsing cookies
 app.use(cookieParser());
 
 app.use("/api", ApiRoute);

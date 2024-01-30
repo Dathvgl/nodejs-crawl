@@ -142,3 +142,19 @@ export type MangaChapterClient = {
   } | null;
   chapters: MangaIndex[];
 };
+
+export type PutManga = {
+  type: MangaType;
+  title: string;
+  altTitle?: string;
+  status: string;
+  authors: [];
+  tags: [];
+  description?: string;
+};
+
+export type PutMangaChapterImage = {
+  type: MangaType;
+  orders: string[];
+  alts: number[];
+};

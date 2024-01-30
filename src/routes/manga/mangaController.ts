@@ -1,10 +1,24 @@
 import { Request, Response } from "express";
 import { CustomError } from "models/errror";
+import MangaFirebase from "models/manga/mangaFirebase";
 import MangaMongo from "models/manga/mangaMongo";
 import MangaService from "models/manga/mangaService";
+import {
+  mangaChapterCloneCollection as mangaChapterCloneCollection,
+  mangaChapterImageCloneCollection,
+  mangaDetailCloneCollection,
+  mangaThumnailCloneCollection,
+} from "models/mongo";
 import { ObjectId } from "mongodb";
-import { MangaOrder, MangaSort, MangaType } from "types/manga";
+import {
+  MangaOrder,
+  MangaSort,
+  MangaType,
+  PutManga,
+  PutMangaChapterImage,
+} from "types/manga";
 import { mangaTypes } from "types/variable";
+import { momentNowTS } from "utils/date";
 
 const mangaTypeExist = (type?: string) => {
   if (!type || !mangaTypes.includes(type as MangaType)) {
@@ -12,7 +26,7 @@ const mangaTypeExist = (type?: string) => {
   } else return type as MangaType;
 };
 
-class MangaController {
+export default class MangaController {
   async tagCrawl(req: Request, res: Response) {
     const { type } = req.query as { type?: MangaType };
     const mangaType = mangaTypeExist(type);
@@ -62,7 +76,7 @@ class MangaController {
     res.json(data);
   }
 
-  async chapterImage(req: Request, res: Response) {
+  async getChapterImage(req: Request, res: Response) {
     const { detailId, chapterId } = req.params;
 
     const { type } = req.query as { type?: MangaType };
@@ -78,6 +92,108 @@ class MangaController {
     res.json(data);
   }
 
+  async putChapterImage(req: Request, res: Response) {
+    const { detailId, chapterId } = req.params;
+    const { type, orders, alts } = req.body as PutMangaChapterImage;
+
+    const mangaType = mangaTypeExist(type);
+
+    // add - remove
+    // order - change
+
+    const data = await mangaChapterCloneCollection.findOne<{
+      orders: string[];
+    }>({
+      _id: new ObjectId(chapterId),
+      detailId: new ObjectId(detailId),
+      type: mangaType,
+    });
+
+    if (req.files) {
+      if (Array.isArray(req.files)) {
+        const { length } = alts;
+
+        for (let index = length - 1; index >= 0; index--) {
+          const pos = alts[index];
+          const { buffer } = req.files[index];
+
+          // New one with emtpy src
+          const { insertedId } =
+            await mangaChapterImageCloneCollection.insertOne({
+              chapterId: new ObjectId(chapterId),
+              type,
+              src: "",
+              createdAt: momentNowTS(),
+              updatedAt: momentNowTS(),
+            });
+
+          const src = await MangaFirebase.addImage({
+            buffer,
+            detailId,
+            chapterId,
+            chapterIndex: insertedId.toString(),
+            type,
+            clone: true,
+          });
+
+          // Update src
+          await mangaChapterImageCloneCollection.updateOne(
+            {
+              _id: new ObjectId(insertedId),
+              chapterId: new ObjectId(chapterId),
+              type,
+            },
+            { $set: { src, chapterIndex: insertedId } }
+          );
+        }
+      }
+    }
+
+    if (data) {
+      // Remove old one
+      const filter = data.orders.filter((item) => {
+        const result = orders.find((x) => x == item);
+        return result == undefined ? true : false;
+      });
+
+      for (const item of filter) {
+        await MangaFirebase.deleteImage({
+          detailId,
+          chapterId,
+          chapterIndex: item,
+          type,
+          clone: true,
+        });
+      }
+
+      // Update new one
+      await mangaChapterCloneCollection.updateOne(
+        {
+          _id: new ObjectId(chapterId),
+          detailId: new ObjectId(detailId),
+          type: mangaType,
+        },
+        {
+          $set: {
+            orders: orders.map((item) => new ObjectId(item)),
+            updatedAt: momentNowTS(),
+          },
+        }
+      );
+    } else {
+      await mangaChapterCloneCollection.insertOne({
+        _id: new ObjectId(chapterId),
+        detailId: new ObjectId(detailId),
+        type: mangaType,
+        orders: orders.map((item) => new ObjectId(item)),
+        createdAt: momentNowTS(),
+        updatedAt: momentNowTS(),
+      });
+    }
+
+    res.json({});
+  }
+
   async thumnail(req: Request, res: Response) {
     const { id } = req.params;
     const { type } = req.query as { type?: MangaType };
@@ -85,6 +201,7 @@ class MangaController {
     const mangaMongo = new MangaMongo();
 
     const data = await mangaMongo.getThumnail(new ObjectId(id), mangaType);
+
     res.json(data);
   }
 
@@ -208,6 +325,66 @@ class MangaController {
     const mangaMongo = new MangaMongo();
     const data = await mangaMongo.deleteDetail(new ObjectId(id), mangaType);
     res.json(data);
+  }
+
+  async putDetail(req: Request, res: Response) {
+    const { id } = req.params;
+    const { type, ...rest } = req.body as PutManga;
+
+    const mangaType = mangaTypeExist(type);
+
+    const data = await mangaDetailCloneCollection.findOne({
+      _id: new ObjectId(id),
+      type,
+    });
+
+    if (data) {
+      await mangaDetailCloneCollection.updateOne(
+        { _id: new ObjectId(id), type: mangaType },
+        { $set: { ...rest, updatedAt: momentNowTS() } }
+      );
+    } else {
+      await mangaDetailCloneCollection.insertOne({
+        _id: new ObjectId(id),
+        type: mangaType,
+        ...rest,
+        createdAt: momentNowTS(),
+        updatedAt: momentNowTS(),
+      });
+    }
+
+    if (req.file) {
+      const detailId = new ObjectId(id);
+
+      const data = await mangaThumnailCloneCollection.findOne({
+        detailId,
+        type: mangaType,
+      });
+
+      const src = await MangaFirebase.addThumnail({
+        buffer: req.file.buffer,
+        id: id.toString(),
+        type,
+        clone: true,
+      });
+
+      if (data) {
+        await mangaThumnailCloneCollection.updateOne(
+          { detailId, type: mangaType },
+          { $set: { src, updatedAt: momentNowTS() } }
+        );
+      } else {
+        await mangaThumnailCloneCollection.insertOne({
+          detailId,
+          type: mangaType,
+          src,
+          createdAt: momentNowTS(),
+          updatedAt: momentNowTS(),
+        });
+      }
+    }
+
+    res.json({ message: "Cập nhật truyện" });
   }
 
   async putDetailChapter(req: Request, res: Response) {
@@ -391,5 +568,3 @@ class MangaController {
     res.json(data);
   }
 }
-
-export default MangaController;

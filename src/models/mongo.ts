@@ -29,6 +29,20 @@ export const mangaDetailChapterImageCollection = mongoDB.collection(
   "mangaDetailChapterImage"
 );
 
+// Clone
+export const mangaDetailCloneCollection =
+  mongoDB.collection("mangaDetailClone");
+
+export const mangaThumnailCloneCollection =
+  mongoDB.collection("mangaThumnailClone");
+
+export const mangaChapterCloneCollection =
+  mongoDB.collection("mangaChapterClone");
+
+export const mangaChapterImageCloneCollection = mongoDB.collection(
+  "mangaChapterImageClone"
+);
+
 // -----
 
 type FieldLookup = {
