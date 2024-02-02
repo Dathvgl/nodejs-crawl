@@ -1,7 +1,6 @@
 import { envs } from "index";
 import {
   aggregateList,
-  fieldLookup,
   mangaAuthorCollection,
   mangaChapterCloneCollection,
   mangaDetailChapterCollection,
@@ -623,25 +622,61 @@ export default class MangaMongo {
     const clone = await mangaChapterCloneCollection
       .aggregate<{
         _id: string;
+        index: number;
         orders: {
           _id: string;
           chapterId: string;
           chapterIndex: string;
           src: string;
-        }[];
+        };
       }>([
         { $match: { _id: chapterId, detailId, type } },
-        ...fieldLookup({
-          document: "mangaChapterImageClone",
-          field: "orders",
-          as: "orders",
-          project: {
-            $project: { _id: 1, chapterId: 1, chapterIndex: 1, src: 1 },
+        {
+          $unwind: {
+            path: "$orders",
+            includeArrayIndex: "index",
+            preserveNullAndEmptyArrays: true,
           },
-        }),
-        { $project: { _id: 1, orders: 1 } },
+        },
+        {
+          $lookup: {
+            from: "mangaDetailChapterImage",
+            localField: "orders",
+            foreignField: "_id",
+            pipeline: [
+              { $project: { _id: 1, chapterId: 1, chapterIndex: 1, src: 1 } },
+            ],
+            as: "images",
+          },
+        },
+        {
+          $lookup: {
+            from: "mangaChapterImageClone",
+            localField: "orders",
+            foreignField: "_id",
+            pipeline: [
+              { $project: { _id: 1, chapterId: 1, chapterIndex: 1, src: 1 } },
+            ],
+            as: "imagesClone",
+          },
+        },
+        {
+          $project: {
+            index: 1,
+            orders: {
+              $cond: [
+                {
+                  $eq: [0, { $size: "$imagesClone" }],
+                },
+                { $first: "$images" },
+                { $first: "$imagesClone" },
+              ],
+            },
+          },
+        },
+        { $sort: { index: 1 } },
       ])
-      .next();
+      .toArray();
 
     const data = await mangaDetailChapterCollection
       .aggregate<MangaChapterClient>([
@@ -767,9 +802,11 @@ export default class MangaMongo {
       ])
       .next();
 
-    if (data && clone) {
-      if (clone.orders.length != 0 && data.current) {
-        data.current.chapters = clone.orders;
+    if (data && clone.length != 0) {
+      const array = clone.map((item) => item.orders);
+
+      if (array.length != 0 && data.current) {
+        data.current.chapters = array;
       }
     }
 

@@ -78,8 +78,8 @@ export default class MangaController {
 
   async getChapterImage(req: Request, res: Response) {
     const { detailId, chapterId } = req.params;
-
     const { type } = req.query as { type?: MangaType };
+
     const mangaType = mangaTypeExist(type);
     const mangaMongo = new MangaMongo();
 
@@ -109,7 +109,10 @@ export default class MangaController {
       type: mangaType,
     });
 
-    if (req.files) {
+    console.log(req.files);
+    console.log(req.body);
+
+    if (req.files && alts) {
       if (Array.isArray(req.files)) {
         const { length } = alts;
 
@@ -127,6 +130,9 @@ export default class MangaController {
               updatedAt: momentNowTS(),
             });
 
+          // order push at
+          orders?.splice(pos, 0, insertedId.toString());
+
           const src = await MangaFirebase.addImage({
             buffer,
             detailId,
@@ -139,11 +145,11 @@ export default class MangaController {
           // Update src
           await mangaChapterImageCloneCollection.updateOne(
             {
-              _id: new ObjectId(insertedId),
+              _id: insertedId,
               chapterId: new ObjectId(chapterId),
               type,
             },
-            { $set: { src, chapterIndex: insertedId } }
+            { $set: { src, chapterIndex: insertedId.toString() } }
           );
         }
       }
@@ -152,7 +158,7 @@ export default class MangaController {
     if (data) {
       // Remove old one
       const filter = data.orders.filter((item) => {
-        const result = orders.find((x) => x == item);
+        const result = orders?.find((x) => x == item);
         return result == undefined ? true : false;
       });
 
@@ -175,7 +181,7 @@ export default class MangaController {
         },
         {
           $set: {
-            orders: orders.map((item) => new ObjectId(item)),
+            orders: orders?.map((item) => new ObjectId(item)) ?? [],
             updatedAt: momentNowTS(),
           },
         }
@@ -185,13 +191,13 @@ export default class MangaController {
         _id: new ObjectId(chapterId),
         detailId: new ObjectId(detailId),
         type: mangaType,
-        orders: orders.map((item) => new ObjectId(item)),
+        orders: orders?.map((item) => new ObjectId(item)) ?? [],
         createdAt: momentNowTS(),
         updatedAt: momentNowTS(),
       });
     }
 
-    res.json({});
+    res.json({ message: "Cập nhật thành công" });
   }
 
   async thumnail(req: Request, res: Response) {

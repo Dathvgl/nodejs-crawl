@@ -155,6 +155,6 @@ export type PutManga = {
 
 export type PutMangaChapterImage = {
   type: MangaType;
-  orders: string[];
-  alts: number[];
+  orders?: string[];
+  alts?: number[];
 };
