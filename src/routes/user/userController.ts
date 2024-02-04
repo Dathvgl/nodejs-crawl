@@ -171,7 +171,7 @@ export default class UserController {
 
   async postFollowManga(req: RequestAuthHandler, res: Response) {
     const { id } = req.params;
-    const { type, chapter } = req.query as {
+    const { type, chapter } = req.body as {
       type?: MangaType;
       chapter?: string;
     };
@@ -183,16 +183,10 @@ export default class UserController {
     const userMongo = new UserMongo();
     const mangaMongo = new MangaMongo();
 
-    const data = await userMongo.postFollowManga(
-      uid,
-      id,
-      mangaType,
-      mangaChapter
-    );
-
+    await userMongo.postFollowManga(uid, id, mangaType, mangaChapter);
     await mangaMongo.putDetailFollow(new ObjectId(id), mangaType, 1);
 
-    res.json(data);
+    res.json({ message: "Theo dõi thành công" });
   }
 
   async putUserRoles(req: Request, res: Response) {

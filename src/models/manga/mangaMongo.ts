@@ -429,9 +429,9 @@ export default class MangaMongo {
   }
 
   async getDetailFollow(id: ObjectId, type: MangaType) {
-    return await mangaDetailCollection.findOne<{ watched: number }>(
+    return await mangaDetailCollection.findOne<{ followed: number }>(
       { _id: id, type },
-      { projection: { watched: 1 } }
+      { projection: { followed: 1 } }
     );
   }
 
