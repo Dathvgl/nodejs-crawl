@@ -28,7 +28,8 @@
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-adblocker": "^2.13.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "tsc-alias": "^1.8.8"
+    "tsc-alias": "^1.8.8",
+    "zingmp3-api-full": "^1.0.14"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.6",
