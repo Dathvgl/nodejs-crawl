@@ -109,9 +109,6 @@ export default class MangaController {
       type: mangaType,
     });
 
-    console.log(req.files);
-    console.log(req.body);
-
     if (req.files && alts) {
       if (Array.isArray(req.files)) {
         const { length } = alts;
