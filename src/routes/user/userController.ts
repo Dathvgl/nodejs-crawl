@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { CustomError } from "models/errror";
-import { auths } from "models/firebase/firebaseService";
+import { auths, stores } from "models/firebase/firebaseService";
 import MangaMongo from "models/manga/mangaMongo";
 import { aggregateList, fieldLookup, userCollection } from "models/mongo";
 import UserMongo from "models/userMongo";
 import { ObjectId } from "mongodb";
 import { RequestAuthHandler } from "types/base";
 import { MangaOrder, MangaSort, MangaType } from "types/manga";
-import { UserType } from "types/user";
+import { UserMessage, UserType } from "types/user";
 import { mangaTypes } from "types/variable";
 import { numBase, strEmpty } from "utils/check";
 import { momentNowTS } from "utils/date";
@@ -61,6 +61,20 @@ export default class UserController {
         createdAt: momentNowTS(),
         updatedAt: momentNowTS(),
       });
+
+      for (const store of stores) {
+        try {
+          await store.collection("users").doc(uid).set({
+            uid,
+            status: true,
+            lastOnline: momentNowTS(),
+          });
+
+          break;
+        } catch (error) {
+          console.error(error);
+        }
+      }
 
       res.json({ _id: insertedId, ...obj });
     } else {
@@ -250,40 +264,38 @@ export default class UserController {
     res.json(data);
   }
 
-  async firebaseUser(req: Request, res: Response) {
-    const { id } = req.params;
-    const length = auths.length;
+  async getMessageUsers(req: Request, res: Response) {
+    const { name } = req.query as { name?: string };
 
-    const user: {
-      uid?: string;
-      email?: string;
-      photoURL?: string;
-      displayName?: string;
-    } = {};
+    await userCollection.createIndex({ name: "text" });
 
-    for (let index = 0; index < length; index++) {
-      const auth = auths[index];
+    const data = await userCollection
+      .aggregate<UserMessage>([
+        { $match: { $text: { $search: name } } },
+        { $project: { _id: 1, uid: 1, name: 1, thumnail: 1 } },
+      ])
+      .toArray();
 
-      try {
-        const record = await auth
-          .getUser(id)
-          .then(({ email, photoURL, displayName }) => ({
-            email,
-            photoURL,
-            displayName,
-          }));
+    res.json(data);
+  }
 
-        user.uid = id;
-        user.email = record.email;
-        user.photoURL = record.photoURL;
-        user.displayName = record.displayName;
+  async postMessageUsers(req: Request, res: Response) {
+    const { uids } = req.body as { uids: string[] };
 
-        break;
-      } catch (error) {
-        console.error(error);
-      }
-    }
+    const data = await userCollection
+      .find<UserMessage>(
+        { uid: { $in: uids } },
+        {
+          projection: {
+            _id: 1,
+            uid: 1,
+            name: 1,
+            thumnail: 1,
+          },
+        }
+      )
+      .toArray();
 
-    res.json(user);
+    res.json(data);
   }
 }

@@ -29,6 +29,9 @@ export const mangaDetailChapterImageCollection = mongoDB.collection(
   "mangaDetailChapterImage"
 );
 
+// Message
+export const messageRoomCollection = mongoDB.collection("messageRoom");
+
 // Clone
 export const mangaDetailCloneCollection =
   mongoDB.collection("mangaDetailClone");

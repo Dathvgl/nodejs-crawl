@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import { cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
+import { getFirestore } from "firebase-admin/firestore";
 import { getStorage } from "firebase-admin/storage";
 import { envs } from "index";
 import config from "./firebaseJson.json";
@@ -32,3 +33,4 @@ const apps = projectIds.map((_, index) => {
 
 export const auths = apps.map((item) => getAuth(item));
 export const buckets = apps.map((item) => getStorage(item).bucket());
+export const stores = apps.map((item) => getFirestore(item));

@@ -32,10 +32,9 @@ userRouter
   .put(authFirebaseHandler, tryCatch(userController.putFollowManga))
   .delete(authFirebaseHandler, tryCatch(userController.deletefollowManga));
 
-userRouter.get(
-  "/firebaseUser/:id",
-  authFirebaseHandler,
-  tryCatch(userController.firebaseUser)
-);
+userRouter
+  .route("/messageUsers")
+  .get(authFirebaseHandler, tryCatch(userController.getMessageUsers))
+  .post(authFirebaseHandler, tryCatch(userController.postMessageUsers));
 
 export default userRouter;

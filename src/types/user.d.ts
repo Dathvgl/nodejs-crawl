@@ -30,3 +30,5 @@ export type UserListFollowMangaClient = ListResult<{
     time: number;
   }[];
 }>;
+
+export type UserMessage = Pick<UserType, "_id" | "uid" | "name" | "thumnail">;
