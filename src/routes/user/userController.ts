@@ -246,7 +246,7 @@ export default class UserController {
 
   async deletefollowManga(req: RequestAuthHandler, res: Response) {
     const { id } = req.params;
-    const { type } = req.query as { type?: MangaType };
+    const { type } = req.body as { type?: MangaType };
 
     const uid = userExist(req.uid);
     const mangaType = mangaTypeExist(type);
